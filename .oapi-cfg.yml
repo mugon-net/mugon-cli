@@ -1,0 +1,11 @@
+package: oapi
+generate:
+  client: true
+  models: true
+output: internal/oapi/openapi.go
+compatibility:
+  always-prefix-enum-values: true
+output-options:
+  skip-prune: true
+  nullable-type: true
+  exclude-tags: ["event"]
