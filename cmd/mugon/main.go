@@ -91,7 +91,9 @@ func main() {
 	}
 
 	if err := root.Run(context.Background(), os.Args); err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
+		if err.Error() != "user aborted" {
+			fmt.Fprintf(os.Stderr, "%v\n", err)
+		}
 		os.Exit(1)
 	}
 }

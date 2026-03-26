@@ -1,0 +1,34 @@
+[project]
+id = "{{.ProjectId}}"
+version = "0.1.0"
+js-sdk-version = "{{.JsSdkVersion}}"
+
+{{if ne .DistributionDir .DefaultDistributionDir}}
+distribution-dir = "{{.DistributionDir}}"
+{{end}}
+
+{{if ne .SourceDir .DefaultSourceDir}}
+source-dir = "{{.SourceDir}}"
+{{end}}
+
+{{if eq .TemplateType "typescript"}}
+[[command]]
+name = "build"
+command = "echo \"TODO\""
+
+[[command]]
+name = "build"
+command = "echo \"TODO\""
+scope = "dev"
+{{end}}
+
+{{if eq .TemplateType "bevy"}}
+[[command]]
+name = "build"
+command = "echo \"TODO\""
+
+[[command]]
+name = "build"
+command = "echo \"TODO\""
+scope = "dev"
+{{end}}

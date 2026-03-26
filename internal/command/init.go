@@ -6,58 +6,83 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/manifoldco/promptui"
+	"github.com/charmbracelet/huh"
 	"github.com/mugon-net/cli/internal/model"
+	"github.com/mugon-net/cli/internal/templates"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 func ExecuteInitCommand(globalConfig model.GlobalConfig) error {
 
 	_, err := os.Stat("mugon.toml")
 	if err == nil {
-		return fmt.Errorf("'mugon.toml' already exists. Please run again in a directory without existing mugon game project.")
+		return fmt.Errorf("'mugon.toml' already exists. Please run this command in a directory without an existing mugon project.")
 	}
 
 	// TODO Future: When PATs exist, prompt here if creating new game project or select existing one
 
-	gameNamePrompt := promptui.Prompt{
-		Label: "Enter game name",
-		Validate: func(value string) error {
-			_, err := getGameId(value)
+	var (
+		projectName      string
+		selectedTemplate string
+		jsSdkVersion     = model.DefaultJsSdkVersion
+		distributionDir  = model.DefaultDistributionDir
+		sourceDir        = model.DefaultSourceDir
+	)
+
+	templateOptions := make([]huh.Option[string], len(model.TemplateEnums))
+	for i, v := range model.TemplateEnums {
+		templateOptions[i] = huh.NewOption(cases.Title(language.English, cases.Compact).String(string(v)), string(v))
+	}
+
+	err = huh.NewInput().
+		Title("Project name").
+		Value(&projectName).
+		Validate(func(str string) error {
+			_, err := getProjectId(projectName)
 			return err
-		},
-	}
-	gameName, err := gameNamePrompt.Run()
-	if err != nil {
-		return err
-	}
-	gameId, err := getGameId(gameName)
+		}).
+		Run()
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("Game id: '%s'\n", gameId)
-
-	templatePrompt := promptui.Select{
-		Label: "What kind of project template do you want to use?",
-		Items: []string{
-			"Bevy", "Javascript", "Empty",
-		},
-	}
-	_, selectedTemplate, err := templatePrompt.Run()
+	err = huh.NewSelect[string]().
+		Title("Project template").
+		Options(templateOptions...).
+		Value(&selectedTemplate).
+		Run()
 	if err != nil {
 		return err
 	}
-	fmt.Printf("TODO: '%s'\n", selectedTemplate)
 
-	// TODO
-	return nil
+	if selectedTemplate == model.TemplateEnumMinimal {
+		err = huh.NewInput().
+			Title("Distribution folder").
+			Value(&distributionDir).
+			Run()
+		if err != nil {
+			return err
+		}
+		err = huh.NewInput().
+			Title("Source folder").
+			Value(&sourceDir).
+			Run()
+		if err != nil {
+			return err
+		}
+	}
+
+	projectId, _ := getProjectId(projectName)
+
+	return templates.InstantiateProjectTemplate(projectId, jsSdkVersion, distributionDir, sourceDir, model.TemplateEnum(selectedTemplate))
 }
 
-func getGameId(gameName string) (string, error) {
+func getProjectId(projectName string) (string, error) {
 	reg := regexp.MustCompile(`[^a-zA-Z0-9-]+`)
-	gameId := reg.ReplaceAllString(strings.ReplaceAll(strings.TrimSpace(strings.ToLower(gameName)), " ", "-"), "")
-	if strings.HasPrefix(gameId, "-") || strings.HasSuffix(gameId, "-") {
-		return "", fmt.Errorf("Invalid game name.")
+	projectId := reg.ReplaceAllString(strings.ReplaceAll(strings.TrimSpace(strings.ToLower(projectName)), " ", "-"), "")
+	if strings.HasPrefix(projectId, "-") || strings.HasSuffix(projectId, "-") {
+		return "", fmt.Errorf("Invalid project name.")
 	}
-	return gameId, nil
+	return projectId, nil
 }

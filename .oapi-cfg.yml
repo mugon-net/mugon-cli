@@ -9,3 +9,4 @@ output-options:
   skip-prune: true
   nullable-type: true
   exclude-tags: ["event"]
+  response-type-suffix: HttpResponse
