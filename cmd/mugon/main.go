@@ -5,9 +5,14 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/BurntSushi/toml"
+	ut "github.com/go-playground/universal-translator"
+	"github.com/go-playground/validator/v10"
+
 	"github.com/mugon-net/cli/internal/command"
+	"github.com/mugon-net/cli/internal/logging"
 	"github.com/mugon-net/cli/internal/model"
 	"github.com/urfave/cli/v3"
 )
@@ -18,6 +23,7 @@ type Config struct {
 }
 
 var config = Config{}
+var trans ut.Translator
 
 func main() {
 	// commands:
@@ -37,6 +43,7 @@ func main() {
 	//          4. "Finish" the version creation, backend does a couple of checks, removes "preliminary" status
 	//              Maybe copies the files to the serving bucket location? Should they still be seperated?
 	//              Probably, so auto clean up can take care of half uploaded version files?
+	trans = logging.GetValidatorTranslator()
 
 	root := &cli.Command{
 		Name:  "mugon",
@@ -91,9 +98,7 @@ func main() {
 	}
 
 	if err := root.Run(context.Background(), os.Args); err != nil {
-		if err.Error() != "user aborted" {
-			fmt.Fprintf(os.Stderr, "%v\n", err)
-		}
+		logging.PrintUserFacingErrorMessage(err, trans)
 		os.Exit(1)
 	}
 }
@@ -102,10 +107,35 @@ func ReadProjectConfig(ctx context.Context, c *cli.Command) (context.Context, er
 	cwd, _ := os.Getwd()
 	projectConfigPath := filepath.Join(cwd, "mugon.toml")
 
-	var projectConfig model.ProjectConfig
+	projectConfig := model.ProjectConfig{
+		DistributionDir: model.DefaultDistributionDir,
+		SourceDir:       model.DefaultSourceDir,
+		Commands:        []model.CommandConfig{},
+	}
+
 	if _, err := toml.DecodeFile(projectConfigPath, &projectConfig); err != nil {
 		return ctx, fmt.Errorf("No mugon.toml file found. Run 'mugon init' to initialize your project.")
 	}
+
+	for i, v := range projectConfig.Commands {
+		if strings.TrimSpace(v.Scope) == "" {
+			v.Scope = model.DefaultCommandScope
+		}
+
+		if strings.TrimSpace(string(v.Os)) == "" {
+			v.Os = model.OsEnumIndependent
+		}
+		projectConfig.Commands[i] = v
+	}
+
+	validate := validator.New(validator.WithRequiredStructEnabled())
+	logging.SetupValidatorLogging(validate, trans)
+
+	err := validate.Struct(projectConfig)
+	if err != nil {
+		return ctx, err
+	}
+
 	config.ProjectConfig = &projectConfig
 
 	return ctx, nil

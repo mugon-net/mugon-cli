@@ -1,3 +1,5 @@
 internal/oapi/
 ./mugon
 ./mugon.exe
+__debug_bin.exe
+test-dir

@@ -1,4 +1,3 @@
-[project]
 id = "{{.ProjectId}}"
 version = "0.1.0"
 js-sdk-version = "{{.JsSdkVersion}}"

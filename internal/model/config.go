@@ -11,14 +11,14 @@ type ProjectConfig struct {
 	DistributionDir string `toml:"distribution-dir" validate:"required"`
 	SourceDir       string `toml:"source-dir" validate:"required"`
 
-	Commands []CommandConfig `toml:"commands"`
+	Commands []CommandConfig `toml:"command" validate:"dive"`
 }
 
 type CommandConfig struct {
 	Name    string `toml:"name" validate:"required"`
 	Command string `toml:"command" validate:"required"`
-	Os      OsEnum `toml:"os" validate:"oneof-independent windows linux darwin"`
-	Scope   string `toml:"scope"`
+	Os      OsEnum `toml:"os" validate:"required,oneof=independent windows linux darwin"`
+	Scope   string `toml:"scope" validate:"required"`
 }
 
 type OsEnum string
