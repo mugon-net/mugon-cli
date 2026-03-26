@@ -1,6 +1,7 @@
 package command
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"regexp"
@@ -9,12 +10,12 @@ import (
 	"github.com/charmbracelet/huh"
 	"github.com/mugon-net/cli/internal/model"
 	"github.com/mugon-net/cli/internal/templates"
+	"github.com/urfave/cli/v3"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
 
-func ExecuteInitCommand(globalConfig model.GlobalConfig) error {
-
+func ExecuteInitCommand(ctx context.Context, c *cli.Command) error {
 	_, err := os.Stat("mugon.toml")
 	if err == nil {
 		return fmt.Errorf("'mugon.toml' already exists. Please run this command in a directory without an existing mugon project.")
