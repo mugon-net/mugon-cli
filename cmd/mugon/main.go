@@ -39,22 +39,49 @@ func main() {
 				Usage:  "Initializes a new project in the current directory.",
 				Action: command.ExecuteInitCommand,
 			},
-			{
+			/*{
 				Name:   "login",
-				Usage:  "Not implemented yet",
+				Usage:  "Saves credentials for a project globally [Not implemented yet]",
 				Action: command.ExecuteLoginCommand,
-			},
-			{
+			},*/
+			/*{
+				Name:   "logout",
+				Usage:  "Removes credentials for a project [Not implemented yet]",
+				Action: command.ExecuteLogoutCommand,
+			},*/
+			/*{
 				Name:   "dev",
-				Usage:  "Not implemented yet",
+				Usage:  "Runs the development suite for the project in the current directory [Not implemented yet]",
 				Before: model.ReadProjectConfig,
 				Action: command.ExecuteDevCommand,
-			},
+			},*/
 			{
 				Name:   "publish",
-				Usage:  "Not implemented yet",
+				Usage:  "Publishes the project in the current directory as a new version on mugon.net",
 				Before: model.ReadProjectConfig,
 				Action: command.ExecutePublishCommand,
+			},
+			{
+				Name:   "run",
+				Usage:  "Runs commands configured in the project file",
+				Before: model.ReadProjectConfig,
+				Action: command.ExecuteRunCommand,
+				Arguments: []cli.Argument{
+					&cli.StringArg{
+						Name:      "command",
+						UsageText: "The command name as specified in the mugon.toml file",
+						Config: cli.StringConfig{
+							TrimSpace: true,
+						},
+					},
+				},
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:  "scope",
+						Value: model.DefaultCommandScope,
+						Usage: "The scope the command should be run in",
+					},
+				},
 			},
 		},
 	}

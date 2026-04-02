@@ -5,4 +5,6 @@ const DefaultDistributionDir = "dist"
 const DefaultSourceDir = "src"
 
 const DefaultCommandScope = "default"
-const DefaultCommandos = OsEnumIndependent
+const DefaultCommandOs = OsEnumIndependent
+
+const DefaultServerUrl = "https://api.mugon.net/api/v1"

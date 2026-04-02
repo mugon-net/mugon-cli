@@ -21,7 +21,7 @@ func ExecuteInitCommand(ctx context.Context, c *cli.Command) error {
 		return fmt.Errorf("'mugon.toml' already exists. Please run this command in a directory without an existing mugon project.")
 	}
 
-	// TODO Future: When PATs exist, prompt here if creating new game project or select existing one
+	// TODO Future: When PATs are implemented in the platform, prompt here if creating new game project or select existing one?
 
 	var (
 		projectName      string

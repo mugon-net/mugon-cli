@@ -1,0 +1,34 @@
+version: "2"
+linters:
+  default: none
+  enable:
+    - govet         # Reports suspicious constructs
+    - errcheck      # Ensures errors are handled
+    - exhaustive    # Checks exhaustiveness of enum switch statements
+    - staticcheck   # Advanced static analysis
+    # - unused      # Checks for unused constants, variables, types and functions
+  exclusions:
+    rules:
+      - linters:
+          - revive
+        text: "exported: "
+      - linters:
+          - revive
+        text: "package-comments: "
+      - linters:
+          - revive
+        text: "var-naming: avoid meaningless package names"
+      - linters:
+          - staticcheck
+        text: "S1025: "
+      - linters:
+          - revive
+        path: "internal/rbac/permission"
+        text: "var-naming: don't use ALL_CAPS"
+formatters:
+  enable:
+    - gofmt         # Enforces standard formatting
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0

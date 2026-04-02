@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/BurntSushi/toml"
@@ -15,7 +16,8 @@ import (
 )
 
 type GlobalConfig struct {
-	Credentials map[string]string
+	Credentials            map[string]string `toml:"credentials" validate:"dive"`
+	MugonNetApiUrlOverride string            `toml:"mugon-net-api-url-override"`
 }
 
 type ProjectConfig struct {
@@ -68,7 +70,7 @@ func ReadProjectConfig(ctx context.Context, c *cli.Command) (context.Context, er
 		}
 
 		if strings.TrimSpace(string(v.Os)) == "" {
-			v.Os = OsEnumIndependent
+			v.Os = DefaultCommandOs
 		}
 		projectConfig.Commands[i] = v
 	}
@@ -84,6 +86,17 @@ func ReadProjectConfig(ctx context.Context, c *cli.Command) (context.Context, er
 	return context.WithValue(ctx, "projectconfig", &projectConfig), nil
 }
 
+func (projectConfig *ProjectConfig) GetCommand(name string, scope string) (CommandConfig, error) {
+	os := runtime.GOOS
+	for _, cmd := range projectConfig.Commands {
+		if cmd.Name == name && cmd.Scope == scope && (string(cmd.Os) == os || cmd.Os == OsEnumIndependent) {
+			return cmd, nil
+		}
+	}
+
+	return CommandConfig{}, CommandNotFoundRunError{}
+}
+
 func GetProjectConfig(ctx context.Context) *ProjectConfig {
 	return ctx.Value("projectconfig").(*ProjectConfig)
 }
@@ -94,4 +107,16 @@ func GetGlobalConfig(ctx context.Context) *GlobalConfig {
 
 func GetValidatorTranslator(ctx context.Context) ut.Translator {
 	return ctx.Value("validatortranslator").(ut.Translator)
+}
+
+func GetApiKey(globalConfig GlobalConfig, projectConfig ProjectConfig) (string, error) {
+	projectId := projectConfig.Id
+	apiKey, ok := globalConfig.Credentials[projectId]
+	apiKeyFromEnv, okFromEnv := os.LookupEnv("MUGON_PROJECT_API_KEY")
+	if okFromEnv {
+		apiKey = apiKeyFromEnv
+	} else if !ok {
+		return "", NoProjectApiKeyFound{}
+	}
+	return apiKey, nil
 }

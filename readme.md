@@ -12,3 +12,8 @@ Planned features:
 Installer:
 - Use Goreleaser to create sh script for linux, maybe add to aur repo, winget and linux (x86, arm), windows(x86, arm), & macos executeable
 - For now only executeables and the .sh script
+
+## Repository note
+
+This GitHub repository is a mirror of our internal monorepo.
+The project is maintained and developed in this internal repository. 
