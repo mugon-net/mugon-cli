@@ -22,3 +22,9 @@ var TemplateEnums = []TemplateEnum{
 	TemplateEnumTypescript,
 	TemplateEnumBevy,
 }
+
+type ContextValueEnum string
+
+const (
+	ContextValueEnumValidatorTranslator = "validatortranslator"
+)

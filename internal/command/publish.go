@@ -36,7 +36,7 @@ func ExecutePublishCommand(ctx context.Context, c *cli.Command) error {
 
 	filePaths := make([]string, 0)
 	fileSizes := make([]int64, 0)
-	filepath.WalkDir(projectConfig.DistributionDir, func(path string, d fs.DirEntry, err error) error {
+	err := filepath.WalkDir(projectConfig.DistributionDir, func(path string, d fs.DirEntry, err error) error {
 		if d.IsDir() {
 			return nil
 		}
@@ -52,6 +52,9 @@ func ExecutePublishCommand(ctx context.Context, c *cli.Command) error {
 		fileSizes = append(fileSizes, fileInfo.Size())
 		return nil
 	})
+	if err != nil {
+		return err
+	}
 
 	if len(filePaths) == 0 {
 		return model.DistributionFolderEmptyPublishError{}
@@ -107,5 +110,5 @@ func ExecutePublishCommand(ctx context.Context, c *cli.Command) error {
 		return err
 	}
 
-	return fmt.Errorf("publish command not implemented yet")
+	return nil
 }

@@ -12,6 +12,7 @@ import (
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
 	"github.com/mugon-net/cli/internal/logging"
+	"github.com/mugon-net/cli/internal/model"
 	"github.com/urfave/cli/v3"
 )
 
@@ -106,7 +107,7 @@ func GetGlobalConfig(ctx context.Context) *GlobalConfig {
 }
 
 func GetValidatorTranslator(ctx context.Context) ut.Translator {
-	return ctx.Value("validatortranslator").(ut.Translator)
+	return ctx.Value(model.ContextValueEnumValidatorTranslator).(ut.Translator)
 }
 
 func GetApiKey(globalConfig GlobalConfig, projectConfig ProjectConfig) (string, error) {

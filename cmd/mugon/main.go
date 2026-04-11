@@ -87,7 +87,7 @@ func main() {
 	}
 
 	translator := logging.GetValidatorTranslator()
-	ctx := context.WithValue(context.Background(), "validatortranslator", translator)
+	ctx := context.WithValue(context.Background(), model.ContextValueEnumValidatorTranslator, translator)
 	if err := root.Run(ctx, os.Args); err != nil {
 		logging.PrintUserFacingErrorMessage(err, translator)
 		os.Exit(1)

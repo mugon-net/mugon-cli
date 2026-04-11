@@ -18,13 +18,19 @@ func GetValidatorTranslator() ut.Translator {
 }
 
 func SetupValidatorLogging(validate *validator.Validate, trans ut.Translator) {
-	en_translations.RegisterDefaultTranslations(validate, trans)
-	validate.RegisterTranslation("semver", trans, func(ut ut.Translator) error {
+	err := en_translations.RegisterDefaultTranslations(validate, trans)
+	if err != nil {
+		panic(err)
+	}
+	err = validate.RegisterTranslation("semver", trans, func(ut ut.Translator) error {
 		return ut.Add("semver", "{0} must be a valid semantic version (e.g. 0.1.0)", true)
 	}, func(ut ut.Translator, fe validator.FieldError) string {
 		t, _ := ut.T("semver", fe.Field())
 		return t
 	})
+	if err != nil {
+		panic(err)
+	}
 	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
 		name := strings.SplitN(fld.Tag.Get("toml"), ",", 2)[0]
 		if name == "-" {

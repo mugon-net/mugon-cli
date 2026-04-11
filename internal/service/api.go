@@ -103,7 +103,7 @@ func (api *Api) UploadVersionFile(ctx context.Context, filePath string, uploadUr
 	if err != nil {
 		return fmt.Errorf("failed to open file: %w", err)
 	}
-	defer file.Close()
+	defer file.Close() // nolint:errcheck
 
 	// Create a buffer to store our multipart form
 	body := &bytes.Buffer{}
@@ -152,7 +152,7 @@ func (api *Api) UploadVersionFile(ctx context.Context, filePath string, uploadUr
 	if err != nil {
 		return fmt.Errorf("failed to upload file: %w", err)
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close() // nolint:errcheck
 
 	if resp.StatusCode >= 400 {
 		return fmt.Errorf("upload failed with status: %s", resp.Status)
