@@ -43,11 +43,11 @@ func ReadGlobalConfig(ctx context.Context, c *cli.Command) (context.Context, err
 
 	var globalConfig GlobalConfig
 	if _, err := toml.DecodeFile(globalPath, &globalConfig); err != nil {
-		return context.WithValue(ctx, "globalconfig", &GlobalConfig{
+		return context.WithValue(ctx, ContextValueEnumGlobalConfig, &GlobalConfig{
 			Credentials: make(map[string]string),
 		}), nil
 	}
-	return context.WithValue(ctx, "globalconfig", &globalConfig), nil
+	return context.WithValue(ctx, ContextValueEnumGlobalConfig, &globalConfig), nil
 }
 
 func ReadProjectConfig(ctx context.Context, c *cli.Command) (context.Context, error) {
@@ -61,7 +61,7 @@ func ReadProjectConfig(ctx context.Context, c *cli.Command) (context.Context, er
 	}
 
 	if _, err := toml.DecodeFile(projectConfigPath, &projectConfig); err != nil {
-		return ctx, fmt.Errorf("No mugon.toml file found. Run 'mugon init' to initialize your project.")
+		return ctx, fmt.Errorf("no mugon.toml file found. Run 'mugon init' to initialize your project")
 	}
 
 	for i, v := range projectConfig.Commands {
@@ -83,7 +83,7 @@ func ReadProjectConfig(ctx context.Context, c *cli.Command) (context.Context, er
 		return ctx, err
 	}
 
-	return context.WithValue(ctx, "projectconfig", &projectConfig), nil
+	return context.WithValue(ctx, ContextValueEnumProjectConfig, &projectConfig), nil
 }
 
 func (projectConfig *ProjectConfig) GetCommand(name string, scope string) (CommandConfig, error) {
@@ -98,11 +98,11 @@ func (projectConfig *ProjectConfig) GetCommand(name string, scope string) (Comma
 }
 
 func GetProjectConfig(ctx context.Context) *ProjectConfig {
-	return ctx.Value("projectconfig").(*ProjectConfig)
+	return ctx.Value(ContextValueEnumProjectConfig).(*ProjectConfig)
 }
 
 func GetGlobalConfig(ctx context.Context) *GlobalConfig {
-	return ctx.Value("globalconfig").(*GlobalConfig)
+	return ctx.Value(ContextValueEnumGlobalConfig).(*GlobalConfig)
 }
 
 func GetValidatorTranslator(ctx context.Context) ut.Translator {

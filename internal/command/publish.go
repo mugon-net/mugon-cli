@@ -100,7 +100,7 @@ func ExecutePublishCommand(ctx context.Context, c *cli.Command) error {
 			err = api.UploadVersionFile(ctx, filePath, fileUploadUrl)
 			if err != nil {
 				_ = api.DeleteVersion(ctx, gameVersionId)
-				return fmt.Errorf("Failed to upload file: '%s'", err)
+				return fmt.Errorf("failed to upload file: '%s'", err)
 			}
 		}
 	}

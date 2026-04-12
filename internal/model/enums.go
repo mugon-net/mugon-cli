@@ -26,5 +26,7 @@ var TemplateEnums = []TemplateEnum{
 type ContextValueEnum string
 
 const (
-	ContextValueEnumValidatorTranslator = "validatortranslator"
+	ContextValueEnumValidatorTranslator ContextValueEnum = "validatortranslator"
+	ContextValueEnumGlobalConfig        ContextValueEnum = "globalconfig"
+	ContextValueEnumProjectConfig       ContextValueEnum = "projectconfig"
 )

@@ -48,7 +48,7 @@ func (api *Api) GetGameByProjectName(ctx context.Context, projectName string) (o
 		return oapi.GameDTO{}, err
 	}
 	if response.HTTPResponse.StatusCode != 200 {
-		return oapi.GameDTO{}, fmt.Errorf("Failed to create version: %s", response.HTTPResponse.Status)
+		return oapi.GameDTO{}, fmt.Errorf("failed to create version: %s", response.HTTPResponse.Status)
 	}
 	return response.JSON200.Game, nil
 }
@@ -59,7 +59,7 @@ func (api *Api) CreateVersion(ctx context.Context, projectId uuid.UUID, version 
 		return uuid.UUID{}, err
 	}
 	if response.HTTPResponse.StatusCode != 200 {
-		return uuid.UUID{}, fmt.Errorf("Failed to create version: %s", response.HTTPResponse.Status)
+		return uuid.UUID{}, fmt.Errorf("failed to create version: %s", response.HTTPResponse.Status)
 	}
 	return response.JSON200.GameVersion.Id, nil
 }
@@ -70,7 +70,7 @@ func (api *Api) DeleteVersion(ctx context.Context, versionId uuid.UUID) error {
 		return err
 	}
 	if response.HTTPResponse.StatusCode != 200 {
-		return fmt.Errorf("Failed to delete version: %s", response.HTTPResponse.Status)
+		return fmt.Errorf("failed to delete version: %s", response.HTTPResponse.Status)
 	}
 	return nil
 }
@@ -81,12 +81,12 @@ func (api *Api) RequestVersionFileUploadUrls(ctx context.Context, versionId uuid
 		fileMetadata = append(fileMetadata, oapi.FileUploadMetadataDTO{Path: filePaths[i], Size: fileSizes[i]})
 	}
 
-	response, err := api.client.GetGameVersionUploadUrlsWithResponse(ctx, oapi.GetGameVersionUploadUrlsRequest{GameVersionId: versionId, FileMetadata: fileMetadata})
+	response, err := api.client.GetGameVersionUploadUrlsWithResponse(ctx, oapi.GetGameVersionUploadUrlsRequest{GameVersionId: versionId, FileMetadata: &fileMetadata})
 	if err != nil {
 		return nil, err
 	}
 	if response.HTTPResponse.StatusCode != 200 {
-		return nil, fmt.Errorf("Failed to request upload urls for version: %s", response.HTTPResponse.Status)
+		return nil, fmt.Errorf("failed to request upload urls for version: %s", response.HTTPResponse.Status)
 	}
 
 	fileUploadUrlMap := make(map[string]oapi.UploadUrlDTO)

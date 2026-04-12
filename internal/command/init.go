@@ -18,7 +18,7 @@ import (
 func ExecuteInitCommand(ctx context.Context, c *cli.Command) error {
 	_, err := os.Stat("mugon.toml")
 	if err == nil {
-		return fmt.Errorf("'mugon.toml' already exists. Please run this command in a directory without an existing mugon project.")
+		return fmt.Errorf("'mugon.toml' already exists. Please run this command in a directory without an existing mugon project")
 	}
 
 	// TODO Future: When PATs are implemented in the platform, prompt here if creating new game project or select existing one?
@@ -83,7 +83,7 @@ func getProjectId(projectName string) (string, error) {
 	reg := regexp.MustCompile(`[^a-zA-Z0-9-]+`)
 	projectId := reg.ReplaceAllString(strings.ReplaceAll(strings.TrimSpace(strings.ToLower(projectName)), " ", "-"), "")
 	if strings.HasPrefix(projectId, "-") || strings.HasSuffix(projectId, "-") {
-		return "", fmt.Errorf("Invalid project name.")
+		return "", fmt.Errorf("invalid project name")
 	}
 	return projectId, nil
 }

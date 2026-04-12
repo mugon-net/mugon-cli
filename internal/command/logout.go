@@ -11,5 +11,5 @@ import (
 func ExecuteLogoutCommand(ctx context.Context, c *cli.Command) error {
 	_ = model.GetGlobalConfig(ctx)
 
-	return fmt.Errorf("Logout command not implemented yet.")
+	return fmt.Errorf("logout command not implemented yet")
 }

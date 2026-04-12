@@ -16,5 +16,5 @@ func ExecuteLoginCommand(ctx context.Context, c *cli.Command) error {
 	// PAT isnt implemented yet in the backend, so only game api key
 	// Command isn't needed for first iteration, do it later
 
-	return fmt.Errorf("Login command not implemented yet.")
+	return fmt.Errorf("login command not implemented yet")
 }
