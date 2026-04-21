@@ -81,7 +81,7 @@ func (api *Api) RequestVersionFileUploadUrls(ctx context.Context, versionId uuid
 		fileMetadata = append(fileMetadata, oapi.FileUploadMetadataDTO{Path: filePaths[i], Size: fileSizes[i]})
 	}
 
-	response, err := api.client.GetGameVersionUploadUrlsWithResponse(ctx, oapi.GetGameVersionUploadUrlsRequest{GameVersionId: versionId, FileMetadata: &fileMetadata})
+	response, err := api.client.GetGameVersionUploadUrlsWithResponse(ctx, oapi.GetGameVersionUploadUrlsRequest{GameVersionId: versionId, FileMetadata: fileMetadata})
 	if err != nil {
 		return nil, err
 	}
