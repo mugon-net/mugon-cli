@@ -22,7 +22,6 @@ mugon-cli:codestyle:
 mugon-cli:build:
   stage: build
   image: golang:1.24-alpine
-  needs: []
   cache:
     key:
       files:
