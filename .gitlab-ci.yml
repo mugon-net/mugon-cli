@@ -1,0 +1,44 @@
+mugon-cli:codestyle:
+  stage: codestyle
+  image: golangci/golangci-lint:v2.8.0-alpine
+  needs: []
+  allow_failure: true
+  cache:
+    key:
+      files:
+        - libraries/mugon-cli/go.sum
+    paths:
+      - .go/pkg/mod/
+      - .cache/go-build/
+  variables:
+    GOPATH: $CI_PROJECT_DIR/.go
+    GOCACHE: $CI_PROJECT_DIR/.cache/go-build
+  script:
+    - cd libraries/mugon-cli
+    - go mod download
+    - go generate
+    - golangci-lint run ./...
+
+mugon-cli:build:
+  stage: build
+  image: golang:1.24-alpine
+  needs: []
+  cache:
+    key:
+      files:
+        - libraries/mugon-cli/go.sum
+    paths:
+      - .go/pkg/mod/
+      - .cache/go-build/
+  variables:
+    CGO_ENABLED: "0"
+    GOPATH: $CI_PROJECT_DIR/.go
+    GOCACHE: $CI_PROJECT_DIR/.cache/go-build
+  script:
+    - cd libraries/mugon-cli
+    - go mod download
+    - go generate
+    - go build -o mugon ./cmd/mugon
+  artifacts:
+    paths:
+      - libraries/mugon-cli/mugon
