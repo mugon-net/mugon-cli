@@ -86,11 +86,13 @@ func ExecutePublishCommand(ctx context.Context, c *cli.Command) error {
 		return err
 	}
 
-	numChunks := len(filePaths) / 10
-
-	for i := 0; i < numChunks; i++ {
-		filePathChunk := filePaths[i*10 : (i+1)*10]
-		fileSizeChunk := fileSizes[i*10 : (i+1)*10]
+	for i := 0; i < len(filePaths); i += 10 {
+		end := i + 10
+		if end > len(filePaths) {
+			end = len(filePaths)
+		}
+		filePathChunk := filePaths[i:end]
+		fileSizeChunk := fileSizes[i:end]
 		uploadUrls, err := api.RequestVersionFileUploadUrls(ctx, gameVersionId, filePathChunk, fileSizeChunk)
 		if err != nil {
 			_ = api.DeleteVersion(ctx, gameVersionId)
