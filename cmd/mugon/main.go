@@ -39,16 +39,32 @@ func main() {
 				Usage:  "Initializes a new project in the current directory.",
 				Action: command.ExecuteInitCommand,
 			},
-			/*{
+			{
 				Name:   "login",
-				Usage:  "Saves credentials for a project globally [Not implemented yet]",
+				Usage:  "Saves credentials for a project globally",
 				Action: command.ExecuteLoginCommand,
-			},*/
-			/*{
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:  "project-id",
+						Usage: "The project ID to log in for",
+					},
+					&cli.StringFlag{
+						Name:  "api-key",
+						Usage: "The API key to store (skips interactive prompt, useful for CI/CD)",
+					},
+				},
+			},
+			{
 				Name:   "logout",
-				Usage:  "Removes credentials for a project [Not implemented yet]",
+				Usage:  "Removes credentials for a project",
 				Action: command.ExecuteLogoutCommand,
-			},*/
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:  "project-id",
+						Usage: "The project ID to log out from",
+					},
+				},
+			},
 			/*{
 				Name:   "dev",
 				Usage:  "Runs the development suite for the project in the current directory [Not implemented yet]",

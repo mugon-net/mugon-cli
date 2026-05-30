@@ -21,14 +21,17 @@ type Api struct {
 }
 
 func InitApi(globalConfig model.GlobalConfig, projectConfig model.ProjectConfig) (*Api, error) {
-	serverUrl := model.DefaultServerUrl
-	if len(strings.TrimSpace(globalConfig.MugonNetApiUrlOverride)) != 0 {
-		serverUrl = globalConfig.MugonNetApiUrlOverride
-	}
-
 	apiKey, err := model.GetApiKey(globalConfig, projectConfig)
 	if err != nil {
 		return nil, err
+	}
+	return InitApiWithKey(globalConfig, apiKey)
+}
+
+func InitApiWithKey(globalConfig model.GlobalConfig, apiKey string) (*Api, error) {
+	serverUrl := model.DefaultServerUrl
+	if len(strings.TrimSpace(globalConfig.MugonNetApiUrlOverride)) != 0 {
+		serverUrl = globalConfig.MugonNetApiUrlOverride
 	}
 
 	client, err := oapi.NewClientWithResponses(serverUrl, oapi.WithRequestEditorFn(func(ctx context.Context, req *http.Request) error {
@@ -38,10 +41,25 @@ func InitApi(globalConfig model.GlobalConfig, projectConfig model.ProjectConfig)
 	if err != nil {
 		return nil, err
 	}
-	return &Api{
-		client: client,
-	}, nil
+	return &Api{client: client}, nil
 }
+func (api *Api) ValidateApiKey(ctx context.Context, projectName string) error {
+	response, err := api.client.GetGameLatestWithResponse(ctx, &oapi.GetGameLatestParams{GameName: projectName})
+	if err != nil {
+		return err
+	}
+	switch response.HTTPResponse.StatusCode {
+	case 200:
+		return nil
+	case 401, 403:
+		return fmt.Errorf("invalid API key")
+	case 404:
+		return fmt.Errorf("project '%s' not found", projectName)
+	default:
+		return fmt.Errorf("validation failed: %s", response.HTTPResponse.Status)
+	}
+}
+
 func (api *Api) GetGameByProjectName(ctx context.Context, projectName string) (oapi.GameDTO, error) {
 	response, err := api.client.GetGameLatestWithResponse(ctx, &oapi.GetGameLatestParams{GameName: projectName})
 	if err != nil {

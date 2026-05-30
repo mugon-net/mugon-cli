@@ -7,4 +7,4 @@ const DefaultSourceDir = "src"
 const DefaultCommandScope = "default"
 const DefaultCommandOs = OsEnumIndependent
 
-const DefaultServerUrl = "https://api.mugon.net/api/v1"
+const DefaultServerUrl = "https://backend.mugon.net/api/v1"

@@ -39,7 +39,7 @@ type CommandConfig struct {
 
 func ReadGlobalConfig(ctx context.Context, c *cli.Command) (context.Context, error) {
 	home, _ := os.UserHomeDir()
-	globalPath := filepath.Join(home, ".mugon-cli.toml")
+	globalPath := filepath.Join(home, ".mugon", "config.toml")
 
 	var globalConfig GlobalConfig
 	if _, err := toml.DecodeFile(globalPath, &globalConfig); err != nil {
@@ -119,4 +119,32 @@ func GetApiKey(globalConfig GlobalConfig, projectConfig ProjectConfig) (string, 
 		return "", NoProjectApiKeyFound{}
 	}
 	return apiKey, nil
+}
+
+func WriteGlobalConfig(globalConfig *GlobalConfig) error {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return err
+	}
+	globalPath := filepath.Join(home, ".mugon", "config.toml")
+	f, err := os.Create(globalPath)
+	if err != nil {
+		return err
+	}
+	defer f.Close() // nolint:errcheck
+	return toml.NewEncoder(f).Encode(globalConfig)
+}
+
+func TryReadProjectId() string {
+	cwd, err := os.Getwd()
+	if err != nil {
+		return ""
+	}
+	var cfg struct {
+		Id string `toml:"id"`
+	}
+	if _, err := toml.DecodeFile(filepath.Join(cwd, "mugon.toml"), &cfg); err != nil {
+		return ""
+	}
+	return cfg.Id
 }

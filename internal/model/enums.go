@@ -18,9 +18,9 @@ const (
 )
 
 var TemplateEnums = []TemplateEnum{
-	TemplateEnumMinimal,
-	TemplateEnumTypescript,
 	TemplateEnumBevy,
+	TemplateEnumTypescript,
+	TemplateEnumMinimal,
 }
 
 type ContextValueEnum string
