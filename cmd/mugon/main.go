@@ -65,12 +65,12 @@ func main() {
 					},
 				},
 			},
-			/*{
+			{
 				Name:   "dev",
 				Usage:  "Runs the development suite for the project in the current directory [Not implemented yet]",
 				Before: model.ReadProjectConfig,
 				Action: command.ExecuteDevCommand,
-			},*/
+			},
 			{
 				Name:   "publish",
 				Usage:  "Publishes the project in the current directory as a new version on mugon.net",

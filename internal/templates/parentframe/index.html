@@ -1,0 +1,15 @@
+<html>
+    <head>
+        <title>mugon.net - {{.ProjectId}} - dev server</title>
+    </head>
+    <body>
+        <script src="./index.js" defer></script>
+        <p>Hello world :)</p>
+        <iframe
+            src="http://localhost:{{.GameFramePort}}"
+            sandbox="allow-scripts"
+            csp="default-src http://localhost:{{.GameFramePort}}; script-src http://localhost:{{.GameFramePort}}/index.js; connect-src http://localhost:{{.GameFramePort}};"
+            style="width: 500px; height: 300px;"
+        ></iframe>
+    </body>
+</html>
