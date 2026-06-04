@@ -127,7 +127,8 @@ func InstantiateProjectTemplate(
 		"TemplateType": string(templateType),
 	}
 
-	return fs.WalkDir(projectTemplatesFS, "project", func(path string, dirEntry fs.DirEntry, err error) error {
+	folderPath := fmt.Sprintf("project/%s", string(templateType))
+	return fs.WalkDir(projectTemplatesFS, folderPath, func(path string, dirEntry fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -136,7 +137,7 @@ func InstantiateProjectTemplate(
 			return nil
 		}
 
-		relPath, err := filepath.Rel("project", path)
+		relPath, err := filepath.Rel(folderPath, path)
 		if err != nil {
 			return err
 		}

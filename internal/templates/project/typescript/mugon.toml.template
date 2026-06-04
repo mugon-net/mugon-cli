@@ -10,24 +10,10 @@ distribution-dir = "{{.DistributionDir}}"
 source-dir = "{{.SourceDir}}"
 {{end}}
 
-{{if eq .TemplateType "typescript"}}
 [[command]]
-name = "build"
-command = "echo \"TODO\""
+name = "install"
+command = "npm install"
 
 [[command]]
 name = "build"
-command = "echo \"TODO\""
-scope = "dev"
-{{end}}
-
-{{if eq .TemplateType "bevy"}}
-[[command]]
-name = "build"
-command = "echo \"TODO\""
-
-[[command]]
-name = "build"
-command = "echo \"TODO\""
-scope = "dev"
-{{end}}
+command = "npm run build"

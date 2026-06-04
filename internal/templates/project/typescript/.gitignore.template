@@ -1,0 +1,3 @@
+.mugon
+node_modules
+{{.DistributionDir}}
