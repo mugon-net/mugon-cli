@@ -41,3 +41,24 @@ mugon-cli:build:
   artifacts:
     paths:
       - libraries/mugon-cli/mugon
+
+mugon-cli:release-dry-run:
+  stage: build
+  image: goreleaser/goreleaser:latest
+  needs: []
+  variables:
+    CGO_ENABLED: "0"
+    GOPATH: $CI_PROJECT_DIR/.go
+    GOCACHE: $CI_PROJECT_DIR/.cache/go-build
+    GIT_DEPTH: 0
+  cache:
+    key:
+      files:
+        - libraries/mugon-cli/go.sum
+    paths:
+      - .go/pkg/mod/
+      - .cache/go-build/
+  script:
+    - cd libraries/mugon-cli
+    - go generate
+    - goreleaser release --snapshot --clean
