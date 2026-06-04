@@ -7,6 +7,7 @@ import (
 	"github.com/mugon-net/cli/internal/command"
 	"github.com/mugon-net/cli/internal/logging"
 	"github.com/mugon-net/cli/internal/model"
+	"github.com/mugon-net/cli/internal/version"
 	"github.com/urfave/cli/v3"
 )
 
@@ -30,8 +31,9 @@ func main() {
 	//              Probably, so auto clean up can take care of half uploaded version files?
 
 	root := &cli.Command{
-		Name:   "mugon",
-		Usage:  "The mugon.net command line interface",
+		Name:    "mugon",
+		Version: version.Version,
+		Usage:   "The mugon.net command line interface",
 		Before: model.ReadGlobalConfig,
 		Commands: []*cli.Command{
 			{
