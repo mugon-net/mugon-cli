@@ -17,6 +17,7 @@ mugon-cli:codestyle:
     - cd libraries/mugon-cli
     - go mod download
     - go generate
+    - git diff --exit-code
     - golangci-lint run ./...
 
 mugon-cli:build:

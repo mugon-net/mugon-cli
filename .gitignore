@@ -1,4 +1,4 @@
-internal/oapi/
+# internal/oapi/ checking in for library
 ./mugon
 ./mugon.exe
 __debug_bin.exe
