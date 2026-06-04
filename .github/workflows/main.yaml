@@ -18,7 +18,7 @@ jobs:
           go-version-file: go.mod
           cache-dependency-path: go.sum
       - run: go mod download
-      - uses: golangci/golangci-lint-action@v6
+      - uses: golangci/golangci-lint-action@v7
         with:
           version: v2.8.0
 
