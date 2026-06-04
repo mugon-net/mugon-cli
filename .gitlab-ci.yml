@@ -45,7 +45,6 @@ mugon-cli:build:
 mugon-cli:release-dry-run:
   stage: build
   image: goreleaser/goreleaser:latest
-  needs: []
   variables:
     CGO_ENABLED: "0"
     GOPATH: $CI_PROJECT_DIR/.go
@@ -61,4 +60,4 @@ mugon-cli:release-dry-run:
   script:
     - cd libraries/mugon-cli
     - go generate
-    - goreleaser release --snapshot --clean
+    - goreleaser release --snapshot
