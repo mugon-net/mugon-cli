@@ -2,4 +2,4 @@
 ./mugon
 ./mugon.exe
 __debug_bin.exe
-test-dir
+# test-dir for now, to iterate faster

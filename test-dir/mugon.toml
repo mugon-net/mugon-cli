@@ -1,0 +1,12 @@
+id = "test"
+version = "0.1.0"
+js-sdk-version = "0.1.0"
+
+[[command]]
+name = "install"
+command = "npm install"
+
+[[command]]
+name = "build"
+command = "npm run build"
+
