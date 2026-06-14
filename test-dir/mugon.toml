@@ -9,4 +9,3 @@ command = "npm install"
 [[command]]
 name = "build"
 command = "npm run build"
-
