@@ -94,6 +94,7 @@ func ExecuteDevCommand(ctx context.Context, c *cli.Command) error {
 	}
 
 	mainServer := &http.Server{Handler: http.FileServer(parentframeFS)}
+	// TODO Add Middleware that checks the path of the served file and overwrites the csp meta tag for the index.html
 	childframeHandler := http.FileServer(http.Dir(projectConfig.DistributionDir))
 	childframeServer := &http.Server{
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
