@@ -54,6 +54,7 @@ func watchSourceDir(ctx context.Context, sourceDir string, onChange func()) {
 					}
 				}
 				if changed {
+					fmt.Printf("Files have changed, triggering rebuild...\n")
 					onChange()
 				}
 			}
@@ -98,7 +99,20 @@ func ExecuteDevCommand(ctx context.Context, c *cli.Command) error {
 	childframeHandler := http.FileServer(http.Dir(projectConfig.DistributionDir))
 	childframeServer := &http.Server{
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Allow-CSP-From", "*")
+			w.Header().Set(
+				"Content-Security-Policy",
+				"default-src 'none'; "+
+					fmt.Sprintf("script-src   http://localhost:%v/ 'unsafe-inline'; ", gameFramePort)+
+					fmt.Sprintf("connect-src  http://localhost:%v/; ", gameFramePort)+
+					fmt.Sprintf("img-src      http://localhost:%v/; ", gameFramePort)+
+					fmt.Sprintf("style-src    http://localhost:%v/ 'unsafe-inline'; ", gameFramePort)+
+					fmt.Sprintf("font-src     http://localhost:%v/; ", gameFramePort)+
+					fmt.Sprintf("media-src    http://localhost:%v/; ", gameFramePort)+
+					"base-uri     'none';"+
+					"form-action  'none';"+
+					fmt.Sprintf("frame-ancestors http://localhost:%v/; ", mainPort)+
+					"sandbox allow-scripts;")
+			w.Header().Set("Access-Control-Allow-Origin", "*")
 			childframeHandler.ServeHTTP(w, r)
 		}),
 	}
@@ -118,8 +132,11 @@ func ExecuteDevCommand(ctx context.Context, c *cli.Command) error {
 		debounceTimer = time.AfterFunc(200*time.Millisecond, func() {
 			commandConfig, err := projectConfig.GetCommand("build", "dev")
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "build command not found: %v\n", err)
-				return
+				commandConfig, err = projectConfig.GetCommand("build", model.DefaultCommandScope)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "build command not found: %v\n", err)
+					return
+				}
 			}
 			if err := service.ExecuteProjectCommand(commandConfig, *globalConfig, *projectConfig); err != nil {
 				fmt.Fprintf(os.Stderr, "build failed: %v\n", err)
