@@ -17,8 +17,6 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-// withinRoot reports whether path is contained within rootDir, guarding against
-// glob patterns that try to escape the project directory via "..".
 func withinRoot(rootDir, path string) bool {
 	rel, err := filepath.Rel(rootDir, path)
 	if err != nil {
@@ -159,27 +157,30 @@ func ExecuteDevCommand(ctx context.Context, c *cli.Command) error {
 	var debounceTimer *time.Timer
 
 	triggerBuild := func() {
+		commandConfig, err := projectConfig.GetCommand("build", "dev")
+		if err != nil {
+			commandConfig, err = projectConfig.GetCommand("build", model.DefaultCommandScope)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "build command not found: %v\n", err)
+				return
+			}
+		}
+		if err := service.ExecuteProjectCommand(commandConfig, *globalConfig, *projectConfig); err != nil {
+			fmt.Fprintf(os.Stderr, "build failed: %v\n", err)
+		}
+	}
+
+	triggerBuildDebounced := func() {
 		mu.Lock()
 		defer mu.Unlock()
 		if debounceTimer != nil {
 			debounceTimer.Stop()
 		}
-		debounceTimer = time.AfterFunc(200*time.Millisecond, func() {
-			commandConfig, err := projectConfig.GetCommand("build", "dev")
-			if err != nil {
-				commandConfig, err = projectConfig.GetCommand("build", model.DefaultCommandScope)
-				if err != nil {
-					fmt.Fprintf(os.Stderr, "build command not found: %v\n", err)
-					return
-				}
-			}
-			if err := service.ExecuteProjectCommand(commandConfig, *globalConfig, *projectConfig); err != nil {
-				fmt.Fprintf(os.Stderr, "build failed: %v\n", err)
-			}
-		})
+		debounceTimer = time.AfterFunc(200*time.Millisecond, triggerBuild)
 	}
+	triggerBuild()
 
-	go watchPaths(ctx, projectConfig.RootDir, projectConfig.WatchPaths, triggerBuild)
+	go watchPaths(ctx, projectConfig.RootDir, projectConfig.WatchPaths, triggerBuildDebounced)
 
 	go func() {
 		<-ctx.Done()

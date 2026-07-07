@@ -1,6 +1,6 @@
 import { setupParentFrameCommunication } from "@mugon/sdk";
 
-console.log("Hello world :) from game frame");
+console.log("Gameframe initializing...");
 setupParentFrameCommunication(
   (msg) => console.log("ready", msg),
   (msg) => console.log("connected", msg),
