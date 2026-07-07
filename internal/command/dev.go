@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -16,7 +17,65 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-func watchSourceDir(ctx context.Context, sourceDir string, onChange func()) {
+// withinRoot reports whether path is contained within rootDir, guarding against
+// glob patterns that try to escape the project directory via "..".
+func withinRoot(rootDir, path string) bool {
+	rel, err := filepath.Rel(rootDir, path)
+	if err != nil {
+		return false
+	}
+	return rel != ".." && !strings.HasPrefix(rel, ".."+string(os.PathSeparator))
+}
+
+func collectModTimes(rootDir string, paths []string) map[string]time.Time {
+	modTimes := make(map[string]time.Time)
+
+	for _, path := range paths {
+		resolved := path
+		if !filepath.IsAbs(resolved) {
+			resolved = filepath.Join(rootDir, resolved)
+		}
+		if !withinRoot(rootDir, resolved) {
+			continue
+		}
+
+		info, err := os.Stat(resolved)
+		if err != nil {
+			continue
+		}
+
+		if info.IsDir() {
+			filepath.Walk(resolved, func(p string, i os.FileInfo, err error) error { //nolint:errcheck
+				if err != nil || i.IsDir() || !withinRoot(rootDir, p) {
+					return nil
+				}
+				modTimes[p] = i.ModTime()
+				return nil
+			})
+			continue
+		}
+
+		modTimes[resolved] = info.ModTime()
+	}
+
+	return modTimes
+}
+
+func modTimesChanged(oldTimes, newTimes map[string]time.Time) bool {
+	for path, mod := range newTimes {
+		if prev, ok := oldTimes[path]; !ok || mod.After(prev) {
+			return true
+		}
+	}
+	for path := range oldTimes {
+		if _, ok := newTimes[path]; !ok {
+			return true
+		}
+	}
+	return false
+}
+
+func watchPaths(ctx context.Context, rootDir string, paths []string, onChange func()) {
 	modTimes := make(map[string]time.Time)
 	ticker := time.NewTicker(500 * time.Millisecond)
 	defer ticker.Stop()
@@ -28,35 +87,11 @@ func watchSourceDir(ctx context.Context, sourceDir string, onChange func()) {
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
-			newModTimes := make(map[string]time.Time)
-			filepath.Walk(sourceDir, func(path string, info os.FileInfo, err error) error { //nolint:errcheck
-				if err != nil || info.IsDir() {
-					return nil
-				}
-				newModTimes[path] = info.ModTime()
-				return nil
-			})
+			newModTimes := collectModTimes(rootDir, paths)
 
-			if initialScanDone {
-				changed := false
-				for path, mod := range newModTimes {
-					if prev, ok := modTimes[path]; !ok || mod.After(prev) {
-						changed = true
-						break
-					}
-				}
-				if !changed {
-					for path := range modTimes {
-						if _, ok := newModTimes[path]; !ok {
-							changed = true
-							break
-						}
-					}
-				}
-				if changed {
-					fmt.Printf("Files have changed, triggering rebuild...\n")
-					onChange()
-				}
+			if initialScanDone && modTimesChanged(modTimes, newModTimes) {
+				fmt.Printf("Files have changed, triggering rebuild...\n")
+				onChange()
 			}
 
 			modTimes = newModTimes
@@ -144,7 +179,7 @@ func ExecuteDevCommand(ctx context.Context, c *cli.Command) error {
 		})
 	}
 
-	go watchSourceDir(ctx, projectConfig.SourceDir, triggerBuild)
+	go watchPaths(ctx, projectConfig.RootDir, projectConfig.WatchPaths, triggerBuild)
 
 	go func() {
 		<-ctx.Done()

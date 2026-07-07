@@ -27,7 +27,11 @@ type ProjectConfig struct {
 	DistributionDir string `toml:"distribution-dir" validate:"required"`
 	SourceDir       string `toml:"source-dir" validate:"required"`
 
+	WatchPaths []string `toml:"watch-paths" validate:"min=1,dive,required"`
+
 	Commands []CommandConfig `toml:"command" validate:"dive"`
+
+	RootDir string
 }
 
 type CommandConfig struct {
@@ -73,6 +77,12 @@ func ReadProjectConfig(ctx context.Context, c *cli.Command) (context.Context, er
 			v.Os = DefaultCommandOs
 		}
 		projectConfig.Commands[i] = v
+	}
+
+	projectConfig.RootDir = cwd
+
+	if len(projectConfig.WatchPaths) == 0 {
+		projectConfig.WatchPaths = []string{projectConfig.SourceDir}
 	}
 
 	validate := validator.New(validator.WithRequiredStructEnabled())
