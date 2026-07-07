@@ -1,4 +1,4 @@
-import { setupParentFrameCommunication } from "@mugon/sdk";
+import { getSettingValue, setupParentFrameCommunication } from "@mugon/sdk";
 
 console.log("Gameframe initializing...");
 setupParentFrameCommunication(
@@ -6,4 +6,10 @@ setupParentFrameCommunication(
   (msg) => console.log("connected", msg),
   (msg) => console.log("disconnected", msg),
   (msg) => console.log("data", msg),
+  (msg) =>
+    console.log(
+      "settings",
+      msg,
+      getSettingValue("mugon.networkmode"),
+    ),
 );

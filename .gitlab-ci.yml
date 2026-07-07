@@ -14,7 +14,11 @@ mugon-cli:codestyle:
     GOPATH: $CI_PROJECT_DIR/.go
     GOCACHE: $CI_PROJECT_DIR/.cache/go-build
   script:
-    - cd libraries/mugon-cli
+    - apk add --no-cache nodejs npm
+    - cd libraries/mugon-sdk-js
+    - npm ci
+    - npm run build
+    - cd ../mugon-cli
     - go mod download
     - go generate
     - git diff --exit-code
@@ -35,7 +39,11 @@ mugon-cli:build:
     GOPATH: $CI_PROJECT_DIR/.go
     GOCACHE: $CI_PROJECT_DIR/.cache/go-build
   script:
-    - cd libraries/mugon-cli
+    - apk add --no-cache nodejs npm
+    - cd libraries/mugon-sdk-js
+    - npm ci
+    - npm run build
+    - cd ../mugon-cli
     - go mod download
     - go generate
     - go build -o mugon ./cmd/mugon
@@ -61,6 +69,10 @@ mugon-cli:release-dry-run:
       - .go/pkg/mod/
       - .cache/go-build/
   script:
-    - cd libraries/mugon-cli
+    - apk add --no-cache nodejs npm
+    - cd libraries/mugon-sdk-js
+    - npm ci
+    - npm run build
+    - cd ../mugon-cli
     - go generate
     - goreleaser release --snapshot

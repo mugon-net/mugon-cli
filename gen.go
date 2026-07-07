@@ -5,3 +5,5 @@ package main
 // All files that are output by this command are committed in the public repository.
 
 //go:generate go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen -config .oapi-cfg.yml ../../specs/api/api-spec.yml
+//go:generate npm --prefix internal/templates/parentframe-src install
+//go:generate npm --prefix internal/templates/parentframe-src run build
