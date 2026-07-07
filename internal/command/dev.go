@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/mugon-net/cli/internal/model"
+	"github.com/mugon-net/cli/internal/relay"
 	"github.com/mugon-net/cli/internal/service"
 	"github.com/mugon-net/cli/internal/templates"
 	"github.com/urfave/cli/v3"
@@ -122,7 +123,12 @@ func ExecuteDevCommand(ctx context.Context, c *cli.Command) error {
 		return err
 	}
 
-	parentframeFS, err := templates.ParentframeFileSystem(*projectConfig, mainPort, gameFramePort)
+	webrtcLn, webrtcPort, err := findFreePort(gameFramePort + 1)
+	if err != nil {
+		return err
+	}
+
+	parentframeFS, err := templates.ParentframeFileSystem(*projectConfig, mainPort, gameFramePort, webrtcPort)
 	if err != nil {
 		return fmt.Errorf("failed to load parentframe: %w", err)
 	}
@@ -149,6 +155,9 @@ func ExecuteDevCommand(ctx context.Context, c *cli.Command) error {
 			childframeHandler.ServeHTTP(w, r)
 		}),
 	}
+
+	webrtcRelay := relay.New()
+	webrtcServer := &http.Server{Handler: webrtcRelay.Handler()}
 
 	ctx, stop := context.WithCancel(ctx)
 	defer stop()
@@ -188,9 +197,10 @@ func ExecuteDevCommand(ctx context.Context, c *cli.Command) error {
 		defer cancel()
 		_ = mainServer.Shutdown(shutdownCtx)
 		_ = childframeServer.Shutdown(shutdownCtx)
+		_ = webrtcServer.Shutdown(shutdownCtx)
 	}()
 
-	errCh := make(chan error, 2)
+	errCh := make(chan error, 3)
 	go func() {
 		if err := mainServer.Serve(mainLn); err != nil && err != http.ErrServerClosed {
 			errCh <- err
@@ -198,6 +208,11 @@ func ExecuteDevCommand(ctx context.Context, c *cli.Command) error {
 	}()
 	go func() {
 		if err := childframeServer.Serve(childframeLn); err != nil && err != http.ErrServerClosed {
+			errCh <- err
+		}
+	}()
+	go func() {
+		if err := webrtcServer.Serve(webrtcLn); err != nil && err != http.ErrServerClosed {
 			errCh <- err
 		}
 	}()

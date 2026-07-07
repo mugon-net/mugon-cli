@@ -22,7 +22,7 @@ var projectTemplatesFS embed.FS
 //go:embed all:parentframe
 var ParentframeFS embed.FS
 
-func ParentframeFileSystem(projectConfig model.ProjectConfig, mainFramePort int, gameFramePort int) (http.FileSystem, error) {
+func ParentframeFileSystem(projectConfig model.ProjectConfig, mainFramePort int, gameFramePort int, webrtcPort int) (http.FileSystem, error) {
 	parentframeSubFS, err := fs.Sub(ParentframeFS, "parentframe")
 	if err != nil {
 		return nil, err
@@ -36,6 +36,7 @@ func ParentframeFileSystem(projectConfig model.ProjectConfig, mainFramePort int,
 		"DefaultSourceDir":       model.DefaultSourceDir,
 		"MainFramePort":          fmt.Sprint(mainFramePort),
 		"GameFramePort":          fmt.Sprint(gameFramePort),
+		"WebrtcPort":             fmt.Sprint(webrtcPort),
 	}
 	return NewTemplateFS(parentframeSubFS, data), nil
 }
