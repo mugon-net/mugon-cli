@@ -1,4 +1,5 @@
 import {
+  Channel,
   getSettingValue,
   sendDataMessage,
   setupParentFrameCommunication,
@@ -6,17 +7,20 @@ import {
 } from "@mugon/sdk";
 import { Game, speedOf, WORLD } from "./game";
 import {
+  decodeFoodDelta,
   decodeFullFood,
   decodeInput,
-  decodeSnapshot,
+  decodeState,
+  encodeFoodDelta,
   encodeFullFood,
   encodeInput,
-  encodeSnapshot,
+  encodeState,
   FoodState,
   messageType,
+  MSG_FOOD_DELTA,
   MSG_FULL_FOOD,
   MSG_INPUT,
-  MSG_SNAPSHOT,
+  MSG_STATE,
   WirePlayer,
 } from "./protocol";
 import { drawWaiting, render, RenderView } from "./render";
@@ -62,7 +66,11 @@ setupParentFrameCommunication(
     if (role !== "server" || !game) return;
     clients.add(msg.clientid);
     game.addPlayer(msg.clientid);
-    sendDataMessage(msg.clientid, encodeFullFood(game.foodList()));
+    sendDataMessage(
+      msg.clientid,
+      encodeFullFood(game.foodList()),
+      Channel.ReliableOrdered,
+    );
   },
   (msg) => {
     if (role !== "server" || !game) return;
@@ -74,10 +82,10 @@ setupParentFrameCommunication(
     if (role === "server" && type === MSG_INPUT) {
       const dir = decodeInput(msg.data);
       game?.setInput(msg.fromclientid, dir.x, dir.y);
-    } else if (role === "client" && type === MSG_SNAPSHOT) {
-      const snap = decodeSnapshot(msg.data);
-      pushSnapshot(snap.players);
-      for (const d of snap.deltas) food[d.index] = { x: d.x, y: d.y };
+    } else if (role === "client" && type === MSG_STATE) {
+      pushSnapshot(decodeState(msg.data).players);
+    } else if (role === "client" && type === MSG_FOOD_DELTA) {
+      for (const d of decodeFoodDelta(msg.data)) food[d.index] = { x: d.x, y: d.y };
     } else if (role === "client" && type === MSG_FULL_FOOD) {
       food = decodeFullFood(msg.data);
     }
@@ -106,24 +114,33 @@ function startHostLoop(): void {
     if (!game) return;
     game.setInput(myId, input.x, input.y);
     game.tick(TICK_MS / 1000);
+
     const players = game.players();
     pushSnapshot(players);
-    const encoded = encodeSnapshot(
-      game.currentTick,
-      players,
-      game.takeChangedFood(),
-    );
-    // The buffer is transferred on send (detaching it), so hand each client its
-    // own copy.
+    const state = encodeState(game.currentTick, players);
+
+    const changed = game.takeChangedFood();
+    const foodDelta = changed.length > 0 ? encodeFoodDelta(changed) : undefined;
+
+    // Buffers are transferred on send (detaching them), so hand each client its
+    // own copy. State is disposable -> unreliable; food changes must arrive ->
+    // reliable.
     for (const clientId of clients) {
-      sendDataMessage(clientId, encoded.slice());
+      sendDataMessage(clientId, state.slice(), Channel.UnreliableOrdered);
+      if (foodDelta) {
+        sendDataMessage(clientId, foodDelta.slice(), Channel.ReliableUnordered);
+      }
     }
   }, TICK_MS);
 }
 
 function startClientLoop(): void {
   setInterval(() => {
-    sendDataMessage(serverId, encodeInput(input.x, input.y));
+    sendDataMessage(
+      serverId,
+      encodeInput(input.x, input.y),
+      Channel.UnreliableOrdered,
+    );
   }, TICK_MS);
 }
 

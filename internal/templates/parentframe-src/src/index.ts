@@ -1,4 +1,5 @@
 import {
+  Channel,
   FromGameframeMessage,
   PROTOCOL,
   ToGameframeDataMessage,
@@ -20,8 +21,18 @@ const FRAME_TYPE_DISCONNECTED = 0x03;
 const FRAME_TYPE_DROP = 0x04;
 const UUID_LEN = 36;
 
+// One data channel per delivery guarantee. The array index is the Channel value
+// shared with the SDK and the relay; the label lets the relay pair each channel
+// with its counterpart on the other peer.
+const CHANNEL_CONFIGS: { label: string; init: RTCDataChannelInit }[] = [
+  { label: "ro", init: { ordered: true } },
+  { label: "ru", init: { ordered: false } },
+  { label: "uo", init: { ordered: true, maxRetransmits: 0 } },
+  { label: "uu", init: { ordered: false, maxRetransmits: 0 } },
+];
+
 let port: MessagePort | undefined;
-let dataChannel: RTCDataChannel | undefined;
+let dataChannels: RTCDataChannel[] = [];
 let startServerButton: HTMLButtonElement;
 let joinServerButton: HTMLButtonElement;
 
@@ -76,7 +87,10 @@ async function connect(mode: NetworkMode) {
     throw new Error("webrtc relay port was not injected into the page");
   }
 
-  const { pc, dc, clientId, serverId } = await connectToRelay(relayPort, mode);
+  const { pc, channels, clientId, serverId } = await connectToRelay(
+    relayPort,
+    mode,
+  );
 
   if (mode === "client" && !serverId) {
     pc.close();
@@ -86,8 +100,10 @@ async function connect(mode: NetworkMode) {
     return;
   }
 
-  dataChannel = dc;
-  dataChannel.onmessage = handleRelayMessage;
+  dataChannels = channels;
+  channels.forEach((dc, index) => {
+    dc.onmessage = (event) => handleRelayMessage(index as Channel, event);
+  });
 
   settings["mugon.networkmode"] = mode;
   if (mode === "server") {
@@ -106,12 +122,16 @@ async function connectToRelay(
   role: NetworkMode,
 ): Promise<{
   pc: RTCPeerConnection;
-  dc: RTCDataChannel;
+  channels: RTCDataChannel[];
   clientId: string;
   serverId?: string;
 }> {
   const pc = new RTCPeerConnection();
-  const dc = pc.createDataChannel("relay");
+  const channels = CHANNEL_CONFIGS.map((c) => {
+    const dc = pc.createDataChannel(c.label, c.init);
+    dc.binaryType = "arraybuffer";
+    return dc;
+  });
 
   const offer = await pc.createOffer();
   await pc.setLocalDescription(offer);
@@ -132,9 +152,9 @@ async function connectToRelay(
   };
 
   await pc.setRemoteDescription({ type: "answer", sdp: body.sdp });
-  await waitForDataChannelOpen(dc);
+  await Promise.all(channels.map(waitForDataChannelOpen));
 
-  return { pc, dc, clientId: body.clientId, serverId: body.serverId };
+  return { pc, channels, clientId: body.clientId, serverId: body.serverId };
 }
 
 function waitForIceGatheringComplete(pc: RTCPeerConnection): Promise<void> {
@@ -187,7 +207,7 @@ function decodeFrame(data: ArrayBuffer): {
   };
 }
 
-function handleRelayMessage(event: MessageEvent<ArrayBuffer>) {
+function handleRelayMessage(channel: Channel, event: MessageEvent<ArrayBuffer>) {
   const { type, id, payload } = decodeFrame(event.data);
 
   switch (type) {
@@ -195,6 +215,7 @@ function handleRelayMessage(event: MessageEvent<ArrayBuffer>) {
       const msg: ToGameframeDataMessage = {
         type: "msg",
         fromclientid: id,
+        channel,
         data: payload,
       };
       port!.postMessage(msg, [payload.buffer]);
@@ -229,10 +250,15 @@ function handleChildFrameMessage(event: MessageEvent<FromGameframeMessage>) {
       }
       break;
     case "msg":
-      dataChannel?.send(encodeFrame(FRAME_TYPE_DATA, msg.toclientid, msg.data));
+      dataChannels[msg.channel]?.send(
+        encodeFrame(FRAME_TYPE_DATA, msg.toclientid, msg.data),
+      );
       break;
     case "drp":
-      dataChannel?.send(encodeFrame(FRAME_TYPE_DROP, msg.clientid));
+      // Control frames must arrive, so always use the reliable ordered channel.
+      dataChannels[Channel.ReliableOrdered]?.send(
+        encodeFrame(FRAME_TYPE_DROP, msg.clientid),
+      );
       break;
   }
 }

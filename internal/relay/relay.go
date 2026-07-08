@@ -7,6 +7,11 @@
 // data frames between them. The "server" role peer additionally receives
 // connect/disconnect notifications for every other peer, mirroring the
 // client-server topology used by mugon games.
+//
+// Every peer opens one data channel per delivery guarantee (reliable/unreliable
+// x ordered/unordered). The relay pairs channels by index: a frame received on
+// a peer's channel i is forwarded on the target's channel i, so the chosen
+// delivery guarantee is preserved across both hops.
 package relay
 
 import (
@@ -35,6 +40,26 @@ const (
 	frameDrop         frameType = 0x04
 )
 
+// channelLabels indexes the data channels by their delivery guarantee. The
+// index is the Channel value shared with the SDK and parentframe; the label
+// pairs a peer's channel with its counterpart on the other peer.
+var channelLabels = [...]string{"ro", "ru", "uo", "uu"}
+
+const channelCount = len(channelLabels)
+
+// Control notifications (connect/disconnect) must always arrive, so they go on
+// the reliable ordered channel.
+const channelReliableOrdered = 0
+
+func channelIndexForLabel(label string) (int, bool) {
+	for i, l := range channelLabels {
+		if l == label {
+			return i, true
+		}
+	}
+	return 0, false
+}
+
 // uuid.String() always returns the 36-character canonical form.
 const uuidLen = 36
 
@@ -57,41 +82,49 @@ func decodeFrame(data []byte) (frameType, uuid.UUID, []byte, error) {
 	return frameType(data[0]), id, data[1+uuidLen:], nil
 }
 
-type peer struct {
-	id   uuid.UUID
-	role role
-	pc   *webrtc.PeerConnection
-
-	mu      sync.Mutex
+type channel struct {
 	dc      *webrtc.DataChannel
 	ready   bool
 	pending [][]byte
 }
 
-func (p *peer) setDataChannel(dc *webrtc.DataChannel) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	p.dc = dc
+type peer struct {
+	id   uuid.UUID
+	role role
+	pc   *webrtc.PeerConnection
+
+	mu       sync.Mutex
+	channels [channelCount]channel
 }
 
-func (p *peer) markReady() {
+func (p *peer) setDataChannel(index int, dc *webrtc.DataChannel) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	p.ready = true
-	for _, frame := range p.pending {
-		_ = p.dc.Send(frame)
+	p.channels[index].dc = dc
+}
+
+func (p *peer) markReady(index int) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	c := &p.channels[index]
+	c.ready = true
+	for _, frame := range c.pending {
+		_ = c.dc.Send(frame)
 	}
-	p.pending = nil
+	c.pending = nil
 }
 
-func (p *peer) send(frame []byte) {
+// send queues the frame until the channel opens if it is not ready yet, so
+// notifications emitted during connection setup are not lost.
+func (p *peer) send(index int, frame []byte) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	if !p.ready || p.dc == nil {
-		p.pending = append(p.pending, frame)
+	c := &p.channels[index]
+	if !c.ready || c.dc == nil {
+		c.pending = append(c.pending, frame)
 		return
 	}
-	_ = p.dc.Send(frame)
+	_ = c.dc.Send(frame)
 }
 
 // Relay is a WebRTC hub: every peer connects directly to the relay (not to
@@ -163,10 +196,14 @@ func (r *Relay) handleOffer(w http.ResponseWriter, req *http.Request) {
 	p := &peer{id: uuid.New(), role: peerRole, pc: pc}
 
 	pc.OnDataChannel(func(dc *webrtc.DataChannel) {
-		p.setDataChannel(dc)
-		dc.OnOpen(p.markReady)
+		index, ok := channelIndexForLabel(dc.Label())
+		if !ok {
+			return
+		}
+		p.setDataChannel(index, dc)
+		dc.OnOpen(func() { p.markReady(index) })
 		dc.OnMessage(func(msg webrtc.DataChannelMessage) {
-			r.handleMessage(p, msg.Data)
+			r.handleMessage(p, index, msg.Data)
 		})
 	})
 
@@ -231,7 +268,7 @@ func (r *Relay) handleOffer(w http.ResponseWriter, req *http.Request) {
 	_ = json.NewEncoder(w).Encode(resp)
 }
 
-func (r *Relay) handleMessage(sender *peer, data []byte) {
+func (r *Relay) handleMessage(sender *peer, index int, data []byte) {
 	t, targetID, payload, err := decodeFrame(data)
 	if err != nil {
 		return
@@ -240,7 +277,7 @@ func (r *Relay) handleMessage(sender *peer, data []byte) {
 	switch t {
 	case frameData:
 		if target, ok := r.lookupPeer(targetID); ok && mayAddress(sender, target) {
-			target.send(encodeFrame(frameData, sender.id, payload))
+			target.send(index, encodeFrame(frameData, sender.id, payload))
 		}
 	case frameDrop:
 		if target, ok := r.lookupPeer(targetID); ok && mayAddress(sender, target) {
@@ -292,5 +329,5 @@ func (r *Relay) notifyServer(t frameType, peerID uuid.UUID) {
 	if server == nil {
 		return
 	}
-	server.send(encodeFrame(t, peerID, nil))
+	server.send(channelReliableOrdered, encodeFrame(t, peerID, nil))
 }
