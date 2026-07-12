@@ -19,11 +19,11 @@ import (
 //go:embed all:project
 var projectTemplatesFS embed.FS
 
-//go:embed all:parentframe
+//go:embed all:parentframe/out
 var ParentframeFS embed.FS
 
 func ParentframeFileSystem(projectConfig model.ProjectConfig, mainFramePort int, gameFramePort int, webrtcPort int) (http.FileSystem, error) {
-	parentframeSubFS, err := fs.Sub(ParentframeFS, "parentframe")
+	parentframeSubFS, err := fs.Sub(ParentframeFS, "parentframe/out")
 	if err != nil {
 		return nil, err
 	}

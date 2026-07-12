@@ -1,0 +1,22 @@
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>mugon - dev server - {{.ProjectId}}</title>
+        <style>
+            body {
+                margin: 0;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="root"></div>
+        <script>
+            window.__MUGON_CONFIG__ = {
+                projectId: {{printf "%q" .ProjectId}},
+                webrtcPort: {{.WebrtcPort}},
+                gameFramePort: {{.GameFramePort}},
+            };
+        </script>
+        <script src="./index.js" defer></script>
+    </body>
+</html>

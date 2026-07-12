@@ -7,13 +7,16 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@mugon/sdk": "file:../../../../mugon-sdk-js"
+    "@mugon/sdk": "file:../../../../mugon-sdk-js",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
   },
   "devDependencies": {
     "@types/node": "^25.9.1",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
     "prettier": "^3.8.3",
     "typescript": "^6.0.3",
-    "vite": "^8.0.16",
-    "vite-plugin-dts": "^5.0.3"
+    "vite": "^8.0.16"
   }
 }
