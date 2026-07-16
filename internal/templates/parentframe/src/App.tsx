@@ -89,7 +89,7 @@ export function App({ config }: { config: MugonConfig }) {
       <iframe
         ref={iframeRef}
         src={iframeSrc}
-        sandbox="allow-scripts"
+        sandbox="allow-scripts allow-pointer-lock"
         scrolling="no"
         style={{ width: "80vw", height: "80vh", border: "1px solid white" }}
       />

@@ -141,7 +141,7 @@ func ExecuteDevCommand(ctx context.Context, c *cli.Command) error {
 			w.Header().Set(
 				"Content-Security-Policy",
 				"default-src 'none'; "+
-					fmt.Sprintf("script-src   http://localhost:%v/ 'unsafe-inline'; ", gameFramePort)+
+					fmt.Sprintf("script-src   http://localhost:%v/ 'unsafe-inline' 'wasm-unsafe-eval'; ", gameFramePort)+
 					fmt.Sprintf("connect-src  http://localhost:%v/; ", gameFramePort)+
 					fmt.Sprintf("img-src      http://localhost:%v/; ", gameFramePort)+
 					fmt.Sprintf("style-src    http://localhost:%v/ 'unsafe-inline'; ", gameFramePort)+
@@ -150,7 +150,7 @@ func ExecuteDevCommand(ctx context.Context, c *cli.Command) error {
 					"base-uri     'none';"+
 					"form-action  'none';"+
 					fmt.Sprintf("frame-ancestors http://localhost:%v/; ", mainPort)+
-					"sandbox allow-scripts;")
+					"sandbox allow-scripts allow-pointer-lock;")
 			w.Header().Set("Access-Control-Allow-Origin", "*")
 			childframeHandler.ServeHTTP(w, r)
 		}),
