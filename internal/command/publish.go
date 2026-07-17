@@ -17,12 +17,14 @@ func ExecutePublishCommand(ctx context.Context, c *cli.Command) error {
 
 	var buildCommand *model.CommandConfig
 
-	if command, err := projectConfig.GetCommand("build", "dev"); err == nil {
+	if command, err := projectConfig.GetCommand("build", model.DefaultCommandScope); err == nil {
 		buildCommand = &command
 	}
 
-	if command, err := projectConfig.GetCommand("build", model.DefaultCommandScope); buildCommand == nil && err == nil {
-		buildCommand = &command
+	if buildCommand == nil {
+		if command, err := projectConfig.GetCommand("build", "dev"); err == nil {
+			buildCommand = &command
+		}
 	}
 
 	if buildCommand != nil {
