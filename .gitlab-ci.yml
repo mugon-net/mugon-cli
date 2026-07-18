@@ -16,7 +16,7 @@ mugon-cli:codestyle:
   script:
     - apk add --no-cache nodejs npm
     - cd libraries/mugon-sdk-js
-    - npm ci
+    - npm install
     - npm run build
     - cd ../mugon-cli
     - go mod download
@@ -41,7 +41,7 @@ mugon-cli:build:
   script:
     - apk add --no-cache nodejs npm
     - cd libraries/mugon-sdk-js
-    - npm ci
+    - npm install
     - npm run build
     - cd ../mugon-cli
     - go mod download
@@ -54,7 +54,7 @@ mugon-cli:build:
 mugon-cli:release-dry-run:
   stage: build
   image:
-    name: goreleaser/goreleaser:latest
+    name: goreleaser/goreleaser:v2.17.0
     entrypoint: [""]
   variables:
     CGO_ENABLED: "0"
@@ -71,7 +71,7 @@ mugon-cli:release-dry-run:
   script:
     - apk add --no-cache nodejs npm
     - cd libraries/mugon-sdk-js
-    - npm ci
+    - npm install
     - npm run build
     - cd ../mugon-cli
     - go generate
