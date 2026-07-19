@@ -13,12 +13,14 @@ import {
   decodeState,
   encodeFoodDelta,
   encodeFullFood,
+  encodeHello,
   encodeInput,
   encodeState,
   FoodState,
   messageType,
   MSG_FOOD_DELTA,
   MSG_FULL_FOOD,
+  MSG_HELLO,
   MSG_INPUT,
   MSG_STATE,
   WirePlayer,
@@ -66,11 +68,6 @@ setupParentFrameCommunication(
     if (role !== "server" || !game) return;
     clients.add(msg.clientid);
     game.addPlayer(msg.clientid);
-    sendDataMessage(
-      msg.clientid,
-      encodeFullFood(game.foodList()),
-      Channel.ReliableOrdered,
-    );
   },
   (msg) => {
     if (role !== "server" || !game) return;
@@ -82,6 +79,14 @@ setupParentFrameCommunication(
     if (role === "server" && type === MSG_INPUT) {
       const dir = decodeInput(msg.data);
       game?.setInput(msg.fromclientid, dir.x, dir.y);
+    } else if (role === "server" && type === MSG_HELLO) {
+      if (game) {
+        sendDataMessage(
+          msg.fromclientid,
+          encodeFullFood(game.foodList()),
+          Channel.ReliableOrdered,
+        );
+      }
     } else if (role === "client" && type === MSG_STATE) {
       pushSnapshot(decodeState(msg.data).players);
     } else if (role === "client" && type === MSG_FOOD_DELTA) {
@@ -139,6 +144,12 @@ function startHostLoop(): void {
 
 function startClientLoop(): void {
   setInterval(() => {
+    // Keep asking for the food field until it arrives. A single request could be
+    // dropped if it races the data channels finishing opening, so retry until
+    // the host's snapshot lands.
+    if (food.length === 0) {
+      sendDataMessage(serverId, encodeHello(), Channel.ReliableOrdered);
+    }
     sendDataMessage(
       serverId,
       encodeInput(input.x, input.y),

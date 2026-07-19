@@ -26,12 +26,21 @@ export const MSG_INPUT = 0;
 export const MSG_STATE = 1;
 export const MSG_FOOD_DELTA = 2;
 export const MSG_FULL_FOOD = 3;
+export const MSG_HELLO = 4;
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
 export function messageType(data: Uint8Array): number {
   return data[0];
+}
+
+// Client -> host: sent once the client is fully wired up, asking the host to
+// send the full food field. The host cannot push it on connect: the relay
+// announces the join before the client's data channels are open, so a pushed
+// snapshot arrives before the client can receive it and is lost.
+export function encodeHello(): Uint8Array {
+  return new Uint8Array([MSG_HELLO]);
 }
 
 // Client -> host: movement direction, each axis quantised to a signed byte.
