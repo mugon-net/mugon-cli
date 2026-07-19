@@ -123,12 +123,15 @@ function startHostLoop(): void {
     const foodDelta = changed.length > 0 ? encodeFoodDelta(changed) : undefined;
 
     // Buffers are transferred on send (detaching them), so hand each client its
-    // own copy. State is disposable -> unreliable; food changes must arrive ->
-    // reliable.
+    // own copy. State is disposable -> unreliable. Food deltas must arrive, and
+    // must ride the same reliable *ordered* channel as the join-time full-food
+    // snapshot: on a separate channel a delta can overtake the snapshot and be
+    // clobbered when the snapshot lands, leaving the client permanently missing
+    // that pellet.
     for (const clientId of clients) {
       sendDataMessage(clientId, state.slice(), Channel.UnreliableOrdered);
       if (foodDelta) {
-        sendDataMessage(clientId, foodDelta.slice(), Channel.ReliableUnordered);
+        sendDataMessage(clientId, foodDelta.slice(), Channel.ReliableOrdered);
       }
     }
   }, TICK_MS);
