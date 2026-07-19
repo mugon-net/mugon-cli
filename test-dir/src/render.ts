@@ -3,6 +3,7 @@
 
 import { FoodState, WirePlayer } from "./protocol";
 import { radiusOf, WORLD } from "./game";
+import { playerName } from "./names";
 
 const TAU = Math.PI * 2;
 
@@ -73,6 +74,78 @@ export function render(
     ctx.fillText(`Mass: ${Math.floor(me.mass)}`, 16, 30);
     ctx.fillText(`Players: ${view.players.length}`, 16, 56);
   }
+
+  drawLeaderboard(ctx, canvas, view.players, myId);
+}
+
+// A row per leaderboard entry, carrying the world rank so the "you" row can
+// show a player's true placing even when it falls outside the visible top five.
+type LeaderRow = { player: WirePlayer; rank: number; isMe: boolean };
+
+function drawLeaderboard(
+  ctx: CanvasRenderingContext2D,
+  canvas: HTMLCanvasElement,
+  players: WirePlayer[],
+  myId: string,
+): void {
+  if (players.length === 0) return;
+
+  const ranked = [...players].sort((a, b) => b.mass - a.mass);
+  const rows: LeaderRow[] = ranked
+    .slice(0, 5)
+    .map((player, i) => ({ player, rank: i + 1, isMe: player.id === myId }));
+
+  const myRank = ranked.findIndex((p) => p.id === myId);
+  if (myRank >= 5) {
+    rows.push({ player: ranked[myRank], rank: myRank + 1, isMe: true });
+  }
+
+  const pad = 12;
+  const lineHeight = 26;
+  const width = 240;
+  const headerHeight = 30;
+  const height = headerHeight + rows.length * lineHeight + pad;
+  const x = canvas.width - width - 16;
+  const y = 16;
+
+  ctx.save();
+  ctx.textAlign = "left";
+  ctx.fillStyle = "rgba(14, 14, 18, 0.72)";
+  ctx.fillRect(x, y, width, height);
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+  ctx.strokeRect(x, y, width, height);
+
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 18px sans-serif";
+  ctx.fillText("Leaderboard", x + pad, y + 22);
+
+  ctx.font = "16px sans-serif";
+  let rowY = y + headerHeight + 6;
+  for (const row of rows) {
+    const { player, rank, isMe } = row;
+
+    if (isMe) {
+      ctx.fillStyle = "rgba(255, 255, 255, 0.12)";
+      ctx.fillRect(x, rowY - 2, width, lineHeight - 2);
+    }
+
+    ctx.fillStyle = isMe ? "#ffffff" : "rgba(255, 255, 255, 0.55)";
+    ctx.fillText(`${rank}.`, x + pad, rowY + 15);
+
+    ctx.fillStyle = `hsl(${player.hue} 70% 62%)`;
+    const name = playerName(player.id, player.hue);
+    ctx.fillText(name, x + pad + 26, rowY + 15);
+
+    ctx.fillStyle = isMe ? "#ffffff" : "rgba(255, 255, 255, 0.75)";
+    ctx.textAlign = "right";
+    ctx.fillText(String(Math.floor(player.mass)), x + width - pad, rowY + 15);
+    ctx.textAlign = "left";
+
+    rowY += lineHeight;
+  }
+
+  ctx.restore();
 }
 
 function drawGrid(ctx: CanvasRenderingContext2D): void {
