@@ -84,7 +84,7 @@ func dialRelay(t *testing.T, srvURL string, role string) *testClient {
 	if err != nil {
 		t.Fatalf("POST /offer: %v", err)
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close() // nolint:errcheck
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("POST /offer: status %d", resp.StatusCode)
 	}

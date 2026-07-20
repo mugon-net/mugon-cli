@@ -34,7 +34,7 @@ func main() {
 		Name:    "mugon",
 		Version: version.Version,
 		Usage:   "The mugon.net command line interface",
-		Before: model.ReadGlobalConfig,
+		Before:  model.ReadGlobalConfig,
 		Commands: []*cli.Command{
 			{
 				Name:   "init",

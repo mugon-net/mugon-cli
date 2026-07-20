@@ -211,6 +211,7 @@ func (r *Relay) handleOffer(w http.ResponseWriter, req *http.Request) {
 		switch s {
 		case webrtc.PeerConnectionStateDisconnected, webrtc.PeerConnectionStateFailed, webrtc.PeerConnectionStateClosed:
 			r.removePeer(p)
+		default:
 		}
 	})
 
@@ -283,6 +284,7 @@ func (r *Relay) handleMessage(sender *peer, index int, data []byte) {
 		if target, ok := r.lookupPeer(targetID); ok && mayAddress(sender, target) {
 			go func() { _ = target.pc.Close() }()
 		}
+	default:
 	}
 }
 
