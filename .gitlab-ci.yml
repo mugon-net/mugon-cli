@@ -1,8 +1,16 @@
+.mugon-cli-changes:
+  rules:
+    - changes:
+        - libraries/mugon-cli/**/*
+        - libraries/mugon-sdk-js/**/*
+        - specs/api/**/*
+
 mugon-cli:codestyle:
   stage: codestyle
   image: golangci/golangci-lint:v2.8.0-alpine
   needs: []
   allow_failure: true
+  rules: !reference [.mugon-cli-changes, rules]
   cache:
     key:
       files:
@@ -27,6 +35,7 @@ mugon-cli:codestyle:
 mugon-cli:build:
   stage: build
   image: golang:1.24-alpine
+  rules: !reference [.mugon-cli-changes, rules]
   cache:
     key:
       files:
@@ -61,6 +70,7 @@ mugon-cli:release-dry-run:
     GOPATH: $CI_PROJECT_DIR/.go
     GOCACHE: $CI_PROJECT_DIR/.cache/go-build
     GIT_DEPTH: 0
+  rules: !reference [.mugon-cli-changes, rules]
   cache:
     key:
       files:
