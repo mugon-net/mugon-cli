@@ -770,6 +770,7 @@ func (e PartyModeEnum) Valid() bool {
 const (
 	ProviderEnumEmail  ProviderEnum = "Email"
 	ProviderEnumGoogle ProviderEnum = "Google"
+	ProviderEnumGuest  ProviderEnum = "Guest"
 )
 
 // Valid indicates whether the value is a known member of the ProviderEnum enum.
@@ -778,6 +779,8 @@ func (e ProviderEnum) Valid() bool {
 	case ProviderEnumEmail:
 		return true
 	case ProviderEnumGoogle:
+		return true
+	case ProviderEnumGuest:
 		return true
 	default:
 		return false
@@ -1327,6 +1330,13 @@ type PartyJoinModeEnum string
 // PartyModeEnum defines model for PartyModeEnum.
 type PartyModeEnum string
 
+// PostAuthGuestResponseBody defines model for PostAuthGuestResponseBody.
+type PostAuthGuestResponseBody struct {
+	Jwt          string  `json:"jwt"`
+	SessionToken string  `json:"sessionToken"`
+	User         UserDTO `json:"user"`
+}
+
 // PostFriendInviteRequest defines model for PostFriendInviteRequest.
 type PostFriendInviteRequest struct {
 	FriendId openapi_types.UUID `json:"friendId"`
@@ -1589,6 +1599,9 @@ type GetVersionsResponse struct {
 	Total    *int32           `json:"total,omitempty"`
 	Versions []GameVersionDTO `json:"versions"`
 }
+
+// PostAuthGuestResponse defines model for PostAuthGuestResponse.
+type PostAuthGuestResponse = PostAuthGuestResponseBody
 
 // PostFriendInviteResponse defines model for PostFriendInviteResponse.
 type PostFriendInviteResponse struct {
@@ -1863,6 +1876,9 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
+	// PostAuthGuest request
+	PostAuthGuest(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// DeleteFriend request
 	DeleteFriend(ctx context.Context, params *DeleteFriendParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -2002,6 +2018,18 @@ type ClientInterface interface {
 
 	// GetUserByUsername request
 	GetUserByUsername(ctx context.Context, params *GetUserByUsernameParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+}
+
+func (c *Client) PostAuthGuest(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostAuthGuestRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
 }
 
 func (c *Client) DeleteFriend(ctx context.Context, params *DeleteFriendParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -2626,6 +2654,33 @@ func (c *Client) GetUserByUsername(ctx context.Context, params *GetUserByUsernam
 		return nil, err
 	}
 	return c.Client.Do(req)
+}
+
+// NewPostAuthGuestRequest generates requests for PostAuthGuest
+func NewPostAuthGuestRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/auth/guest")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
 }
 
 // NewDeleteFriendRequest generates requests for DeleteFriend
@@ -4621,6 +4676,9 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
+	// PostAuthGuestWithResponse request
+	PostAuthGuestWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*PostAuthGuestHttpResponse, error)
+
 	// DeleteFriendWithResponse request
 	DeleteFriendWithResponse(ctx context.Context, params *DeleteFriendParams, reqEditors ...RequestEditorFn) (*DeleteFriendHttpResponse, error)
 
@@ -4760,6 +4818,28 @@ type ClientWithResponsesInterface interface {
 
 	// GetUserByUsernameWithResponse request
 	GetUserByUsernameWithResponse(ctx context.Context, params *GetUserByUsernameParams, reqEditors ...RequestEditorFn) (*GetUserByUsernameHttpResponse, error)
+}
+
+type PostAuthGuestHttpResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *PostAuthGuestResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r PostAuthGuestHttpResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PostAuthGuestHttpResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
 }
 
 type DeleteFriendHttpResponse struct {
@@ -5544,6 +5624,15 @@ func (r GetUserByUsernameHttpResponse) StatusCode() int {
 	return 0
 }
 
+// PostAuthGuestWithResponse request returning *PostAuthGuestHttpResponse
+func (c *ClientWithResponses) PostAuthGuestWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*PostAuthGuestHttpResponse, error) {
+	rsp, err := c.PostAuthGuest(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostAuthGuestHttpResponse(rsp)
+}
+
 // DeleteFriendWithResponse request returning *DeleteFriendHttpResponse
 func (c *ClientWithResponses) DeleteFriendWithResponse(ctx context.Context, params *DeleteFriendParams, reqEditors ...RequestEditorFn) (*DeleteFriendHttpResponse, error) {
 	rsp, err := c.DeleteFriend(ctx, params, reqEditors...)
@@ -5994,6 +6083,32 @@ func (c *ClientWithResponses) GetUserByUsernameWithResponse(ctx context.Context,
 		return nil, err
 	}
 	return ParseGetUserByUsernameHttpResponse(rsp)
+}
+
+// ParsePostAuthGuestHttpResponse parses an HTTP response from a PostAuthGuestWithResponse call
+func ParsePostAuthGuestHttpResponse(rsp *http.Response) (*PostAuthGuestHttpResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PostAuthGuestHttpResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest PostAuthGuestResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
 }
 
 // ParseDeleteFriendHttpResponse parses an HTTP response from a DeleteFriendWithResponse call
