@@ -1492,9 +1492,8 @@ type UploadThumbnailRequest struct {
 
 // UploadUrlDTO defines model for UploadUrlDTO.
 type UploadUrlDTO struct {
-	FileId   openapi_types.UUID `json:"fileId"`
-	FormData map[string]string  `json:"formData"`
-	Url      string             `json:"url"`
+	FileId openapi_types.UUID `json:"fileId"`
+	Url    string             `json:"url"`
 }
 
 // UserDTO defines model for UserDTO.

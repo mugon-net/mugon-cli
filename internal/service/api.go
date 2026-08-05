@@ -1,14 +1,10 @@
 package service
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"io"
-	"mime/multipart"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/google/uuid"
@@ -116,55 +112,23 @@ func (api *Api) RequestVersionFileUploadUrls(ctx context.Context, versionId uuid
 }
 
 func (api *Api) UploadVersionFile(ctx context.Context, filePath string, uploadUrlDTO oapi.UploadUrlDTO) error {
-	// Open the file
 	file, err := os.Open(filePath)
 	if err != nil {
 		return fmt.Errorf("failed to open file: %w", err)
 	}
 	defer file.Close() // nolint:errcheck
 
-	// Create a buffer to store our multipart form
-	body := &bytes.Buffer{}
-	writer := multipart.NewWriter(body)
-
-	// Add form fields from the DTO
-	for key, value := range uploadUrlDTO.FormData {
-		part, err := writer.CreateFormField(key)
-		if err != nil {
-			return fmt.Errorf("failed to create form field: %w", err)
-		}
-		_, err = io.WriteString(part, value)
-		if err != nil {
-			return fmt.Errorf("failed to write form field: %w", err)
-		}
-	}
-
-	// Add the file to the form
-	part, err := writer.CreateFormFile("file", filepath.Base(filePath))
+	info, err := file.Stat()
 	if err != nil {
-		return fmt.Errorf("failed to create form file: %w", err)
-	}
-	_, err = io.Copy(part, file)
-	if err != nil {
-		return fmt.Errorf("failed to copy file data: %w", err)
+		return fmt.Errorf("failed to stat file: %w", err)
 	}
 
-	// Close the writer to finalize the multipart form
-	err = writer.Close()
-	if err != nil {
-		return fmt.Errorf("failed to close writer: %w", err)
-	}
-
-	// Create the request
-	req, err := http.NewRequestWithContext(ctx, "POST", uploadUrlDTO.Url, body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, uploadUrlDTO.Url, file)
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}
+	req.ContentLength = info.Size()
 
-	// Set the content type header
-	req.Header.Set("Content-Type", writer.FormDataContentType())
-
-	// Create a client and execute the request
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
