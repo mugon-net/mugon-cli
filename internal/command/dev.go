@@ -99,6 +99,20 @@ func watchPaths(ctx context.Context, rootDir string, paths []string, onChange fu
 	}
 }
 
+// requestHostname returns the hostname the browser used to reach this
+// request, formatted so it can be followed by ":<port>" (IPv6 literals keep
+// their brackets, e.g. "[::1]").
+func requestHostname(r *http.Request) string {
+	host, _, err := net.SplitHostPort(r.Host)
+	if err != nil {
+		return r.Host
+	}
+	if strings.Contains(host, ":") {
+		return "[" + host + "]"
+	}
+	return host
+}
+
 func findFreePort(startPort int) (net.Listener, int, error) {
 	for port := startPort; port < startPort+100; port++ {
 		ln, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
@@ -138,18 +152,20 @@ func ExecuteDevCommand(ctx context.Context, c *cli.Command) error {
 	childframeHandler := http.FileServer(http.Dir(projectConfig.DistributionDir))
 	childframeServer := &http.Server{
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			host := requestHostname(r)
 			w.Header().Set(
 				"Content-Security-Policy",
 				"default-src 'none'; "+
-					fmt.Sprintf("script-src   http://localhost:%v/ 'unsafe-inline' 'wasm-unsafe-eval'; ", gameFramePort)+
-					fmt.Sprintf("connect-src  http://localhost:%v/; ", gameFramePort)+
-					fmt.Sprintf("img-src      http://localhost:%v/; ", gameFramePort)+
-					fmt.Sprintf("style-src    http://localhost:%v/ 'unsafe-inline'; ", gameFramePort)+
-					fmt.Sprintf("font-src     http://localhost:%v/; ", gameFramePort)+
-					fmt.Sprintf("media-src    http://localhost:%v/; ", gameFramePort)+
+					fmt.Sprintf("script-src   http://%v:%v/ 'unsafe-inline' 'wasm-unsafe-eval'; ", host, gameFramePort)+
+					fmt.Sprintf("connect-src  http://%v:%v/; ", host, gameFramePort)+
+					fmt.Sprintf("img-src      http://%v:%v/; ", host, gameFramePort)+
+					fmt.Sprintf("style-src    http://%v:%v/ 'unsafe-inline'; ", host, gameFramePort)+
+					fmt.Sprintf("font-src     http://%v:%v/; ", host, gameFramePort)+
+					fmt.Sprintf("media-src    http://%v:%v/; ", host, gameFramePort)+
+					fmt.Sprintf("worker-src   http://%v:%v/ blob:; ", host, gameFramePort)+
 					"base-uri     'none';"+
 					"form-action  'none';"+
-					fmt.Sprintf("frame-ancestors http://localhost:%v/; ", mainPort)+
+					fmt.Sprintf("frame-ancestors http://%v:%v/; ", host, mainPort)+
 					"sandbox allow-scripts allow-pointer-lock;")
 			w.Header().Set("Access-Control-Allow-Origin", "*")
 			childframeHandler.ServeHTTP(w, r)
