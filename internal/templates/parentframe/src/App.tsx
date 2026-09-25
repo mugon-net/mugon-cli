@@ -22,15 +22,21 @@ export function App({ config }: { config: MugonConfig }) {
   const parentframeRef = useRef<Parentframe | null>(null);
   const [status, setStatus] = useState<Status>({ kind: "idle" });
   const [iframeSrc, setIframeSrc] = useState<string>();
+  const [roleChosen, setRoleChosen] = useState(false);
 
   useEffect(() => {
-    // Construct the Parentframe (which attaches the iframe's load listener)
-    // before pointing the iframe at the game, so the "init" handshake is never
-    // missed on a fast-loading game.
+    // Construct the Parentframe (which attaches the iframe's `load` listener)
+    // right away, but leave the iframe's `src` unset until a role is chosen (see
+    // `connect` below) -- the game itself (its wasm, currently ~120MB+) shouldn't
+    // fetch or start running before the user has actually picked "Start as
+    // host"/"Start as client". A srcless iframe never navigates, so `load` simply
+    // never fires (and `establishChildHandshake`'s retry loop never starts) until
+    // `connect` sets a real `src`, at which point the handshake proceeds exactly as
+    // it did when this ran eagerly on mount.
     parentframeRef.current = new Parentframe({
       gameFrame: iframeRef.current!,
       transport: new RelayTransport(
-        `http://localhost:${config.webrtcPort}/offer`,
+        `${location.protocol}//${location.hostname}:${config.webrtcPort}/offer`,
       ),
       onHandshakeComplete: () =>
         console.log("Handshake with gameframe complete."),
@@ -39,12 +45,17 @@ export function App({ config }: { config: MugonConfig }) {
           `Mismatching protocol version: CLI protocol version: '${expected}'; Game protocol version: '${gameProtocol}'`,
         ),
     });
-    setIframeSrc(`http://localhost:${config.gameFramePort}`);
     console.log("Parentframe initialized.");
   }, [config.webrtcPort, config.gameFramePort]);
 
   const connect = (mode: NetworkMode) => {
+    setRoleChosen(true);
     setStatus({ kind: "connecting" });
+    // First real navigation of the iframe -- this is the moment the game's wasm
+    // actually starts downloading, not page load.
+    setIframeSrc(
+      `${location.protocol}//${location.hostname}:${config.gameFramePort}`,
+    );
     parentframeRef
       .current!.connect(mode)
       .then(() => setStatus({ kind: "connected", mode }))
@@ -57,17 +68,25 @@ export function App({ config }: { config: MugonConfig }) {
           alert(`Failed to connect to the local webrtc relay: ${err}`);
         }
         setStatus({ kind: "idle" });
+        setRoleChosen(false);
       });
   };
 
-  const busy = status.kind !== "idle";
-
   return (
+    // A real flex column, not three independently `position: absolute`-guessed
+    // overlays -- the title and status row used to be laid out purely by `vh`
+    // offsets from the viewport edges, which assumed enough clearance before the
+    // (separately, flex-centered) iframe. That assumption broke on a short
+    // viewport (a landscape phone): the title's fixed-size text no longer fit in
+    // its `vh`-sized gap and started drawing over the iframe. A normal column
+    // gives the title and status row their own space in document flow, with the
+    // iframe (`flex: 1 1 auto`) filling whatever's left -- the game area is what
+    // shrinks on a short viewport, not something the title can ever overlap.
     <div
       style={{
         height: "100vh",
         display: "flex",
-        justifyContent: "center",
+        flexDirection: "column",
         alignItems: "center",
         backgroundColor: "#1F1F1F",
         fontFamily: "sans-serif",
@@ -76,56 +95,67 @@ export function App({ config }: { config: MugonConfig }) {
       <style>{buttonCss}</style>
       <div
         style={{
-          position: "absolute",
-          top: "5vh",
-          left: "50%",
-          transform: "translateX(-50%)",
+          flexShrink: 0,
+          padding: "1rem 0",
           color: "white",
-          fontSize: "2rem",
+          fontSize: "1.5rem",
+          textAlign: "center",
         }}
       >
         Mugon CLI - Dev Server - {config.projectId}
       </div>
-      <iframe
-        ref={iframeRef}
-        src={iframeSrc}
-        sandbox="allow-scripts allow-pointer-lock"
-        scrolling="no"
-        style={{ width: "80vw", height: "80vh", border: "1px solid white" }}
-      />
       <div
         style={{
-          position: "absolute",
-          bottom: "5vh",
-          width: "100vw",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center",
-          gap: "0.75rem",
+          position: "relative",
+          flex: "1 1 auto",
+          minHeight: 0,
+          width: "80vw",
         }}
       >
-        <div style={{ display: "flex", gap: "1rem" }}>
-          <button
-            className="button"
-            disabled={busy}
-            onClick={() => connect("server")}
+        <iframe
+          ref={iframeRef}
+          src={iframeSrc}
+          sandbox="allow-scripts allow-pointer-lock allow-fullscreen"
+          allow="fullscreen"
+          scrolling="no"
+          style={{
+            width: "100%",
+            height: "100%",
+            border: "1px solid white",
+            display: roleChosen ? "block" : "none",
+          }}
+        />
+        {!roleChosen && (
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "1rem",
+            }}
           >
-            Start as host
-          </button>
-          <button
-            className="button"
-            disabled={busy}
-            onClick={() => connect("client")}
-          >
-            Start as client
-          </button>
-        </div>
-        <div
-          style={{ color: "#AAAAAA", fontSize: "0.9rem", minHeight: "1.2rem" }}
-        >
-          {status.kind}
-        </div>
+            <button className="button" onClick={() => connect("server")}>
+              Start as host
+            </button>
+            <button className="button" onClick={() => connect("client")}>
+              Start as client
+            </button>
+          </div>
+        )}
+      </div>
+      <div
+        style={{
+          flexShrink: 0,
+          padding: "1rem 0",
+          color: "#AAAAAA",
+          fontSize: "0.9rem",
+          minHeight: "1.2rem",
+          textAlign: "center",
+        }}
+      >
+        {roleChosen ? status.kind : ""}
       </div>
     </div>
   );
