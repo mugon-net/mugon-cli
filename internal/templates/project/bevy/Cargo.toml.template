@@ -1,0 +1,25 @@
+[package]
+name = "{{.ProjectId}}"
+version = "0.1.0"
+edition = "2024"
+
+# The binary is always called `game`, so the build command doesn't depend on the project id.
+[[bin]]
+name = "game"
+path = "src/main.rs"
+
+[dependencies]
+bevy = "0.19"
+mugon-sdk-bevy = { version = "0.1", features = ["loading"] }
+
+[target.wasm32-unknown-unknown.dependencies]
+getrandom = { version = "0.3", features = ["wasm_js"] }
+
+[profile.release]
+opt-level = "s"
+
+# Smaller and faster wasm at the cost of a much slower compile; `mugon publish` builds with it.
+[profile.release-lto]
+inherits = "release"
+lto = true
+codegen-units = 1

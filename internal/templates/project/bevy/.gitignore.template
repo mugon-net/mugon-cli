@@ -1,2 +1,5 @@
 .mugon
+node_modules
+target
+pkg
 {{.DistributionDir}}
