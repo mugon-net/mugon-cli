@@ -1172,9 +1172,12 @@ type CreateGameRequest struct {
 
 // CreateVersionRequest defines model for CreateVersionRequest.
 type CreateVersionRequest struct {
-	GameId   openapi_types.UUID      `json:"gameId"`
-	Settings *GameVersionSettingsDTO `json:"settings,omitempty"`
-	Version  string                  `json:"version"`
+	GameId openapi_types.UUID `json:"gameId"`
+
+	// SdkVersion Major version of the @mugon/sdk the game uses.
+	SdkVersion int32                   `json:"sdkVersion"`
+	Settings   *GameVersionSettingsDTO `json:"settings,omitempty"`
+	Version    string                  `json:"version"`
 }
 
 // DecodedApiKeyDTO defines model for DecodedApiKeyDTO.
@@ -1250,6 +1253,7 @@ type GameVersionDTO struct {
 	Created    time.Time              `json:"created"`
 	GameId     openapi_types.UUID     `json:"gameId"`
 	Id         openapi_types.UUID     `json:"id"`
+	SdkVersion int32                  `json:"sdkVersion"`
 	Settings   GameVersionSettingsDTO `json:"settings"`
 	Size       int32                  `json:"size"`
 	Version    string                 `json:"version"`

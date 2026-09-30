@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 
 	"github.com/BurntSushi/toml"
@@ -32,6 +33,13 @@ type ProjectConfig struct {
 	Commands []CommandConfig `toml:"command" validate:"dive"`
 
 	RootDir string
+}
+
+// JsSdkMajor is the protocol generation the game was built against; the
+// dev parentframe and the platform select their behaviour from it.
+func (config ProjectConfig) JsSdkMajor() (int, error) {
+	major, _, _ := strings.Cut(config.JsSdkVersion, ".")
+	return strconv.Atoi(major)
 }
 
 type CommandConfig struct {

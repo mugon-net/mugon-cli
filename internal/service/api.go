@@ -67,8 +67,8 @@ func (api *Api) GetGameByProjectName(ctx context.Context, projectName string) (o
 	return response.JSON200.Game, nil
 }
 
-func (api *Api) CreateVersion(ctx context.Context, projectId uuid.UUID, version string) (uuid.UUID, error) {
-	response, err := api.client.CreateVersionWithResponse(ctx, oapi.CreateVersionRequest{GameId: projectId, Version: version})
+func (api *Api) CreateVersion(ctx context.Context, projectId uuid.UUID, version string, sdkVersion int) (uuid.UUID, error) {
+	response, err := api.client.CreateVersionWithResponse(ctx, oapi.CreateVersionRequest{GameId: projectId, Version: version, SdkVersion: int32(sdkVersion)})
 	if err != nil {
 		return uuid.UUID{}, err
 	}

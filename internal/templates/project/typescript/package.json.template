@@ -1,0 +1,16 @@
+{
+  "name": "{{.ProjectId}}",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build --base ./ --outDir {{.DistributionDir}}"
+  },
+  "dependencies": {
+    "@mugon/sdk": "{{.JsSdkVersion}}"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "vite": "^5.0.0"
+  }
+}

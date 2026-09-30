@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"io/fs"
 	"path/filepath"
+	"slices"
+	"strconv"
+	"strings"
 
 	"github.com/mugon-net/cli/internal/model"
 	"github.com/mugon-net/cli/internal/service"
@@ -39,18 +42,19 @@ func ExecutePublishCommand(ctx context.Context, c *cli.Command) error {
 	filePaths := make([]string, 0)
 	fileSizes := make([]int64, 0)
 	err := filepath.WalkDir(projectConfig.DistributionDir, func(path string, d fs.DirEntry, err error) error {
-		if d.IsDir() {
-			return nil
-		}
-		if err != nil {
+		if err != nil || d.IsDir() {
 			return nil
 		}
 		fileInfo, err := d.Info()
 		if err != nil {
 			return nil
 		}
+		relativePath, err := filepath.Rel(projectConfig.DistributionDir, path)
+		if err != nil {
+			return nil
+		}
 
-		filePaths = append(filePaths, filepath.Join(path, d.Name()))
+		filePaths = append(filePaths, filepath.ToSlash(relativePath))
 		fileSizes = append(fileSizes, fileInfo.Size())
 		return nil
 	})
@@ -62,15 +66,16 @@ func ExecutePublishCommand(ctx context.Context, c *cli.Command) error {
 		return model.DistributionFolderEmptyPublishError{}
 	}
 
-	hasIndexJs := false
-	for _, v := range filePaths {
-		if v == "index.js" {
-			hasIndexJs = true
-		}
+	if !slices.Contains(filePaths, "index.html") {
+		return model.NoIndexHtmlPublishError{}
 	}
 
-	if !hasIndexJs {
-		return model.NoIndexJsPublishError{}
+	jsSdkMajor, err := projectConfig.JsSdkMajor()
+	if err != nil {
+		return fmt.Errorf("invalid js-sdk-version %q in mugon.toml: %w", projectConfig.JsSdkVersion, err)
+	}
+	if err := checkBundledSdk(*projectConfig, jsSdkMajor); err != nil {
+		return err
 	}
 
 	api, err := service.InitApi(*globalConfig, *projectConfig)
@@ -83,7 +88,7 @@ func ExecutePublishCommand(ctx context.Context, c *cli.Command) error {
 		return err
 	}
 
-	gameVersionId, err := api.CreateVersion(ctx, game.Id, projectConfig.Version)
+	gameVersionId, err := api.CreateVersion(ctx, game.Id, projectConfig.Version, jsSdkMajor)
 	if err != nil {
 		return err
 	}
@@ -114,5 +119,28 @@ func ExecutePublishCommand(ctx context.Context, c *cli.Command) error {
 		return err
 	}
 
+	return nil
+}
+
+func checkBundledSdk(projectConfig model.ProjectConfig, jsSdkMajor int) error {
+	bundledVersions, err := service.FindSdkVersions(projectConfig.DistributionDir)
+	if err != nil {
+		return err
+	}
+	if len(bundledVersions) == 0 {
+		return model.NoSdkBundledPublishError{}
+	}
+	for _, bundled := range bundledVersions {
+		bundledMajor, _, _ := strings.Cut(bundled, ".")
+		if bundledMajor != strconv.Itoa(jsSdkMajor) {
+			return model.SdkMajorMismatchPublishError{Declared: projectConfig.JsSdkVersion, Bundled: bundled}
+		}
+		if bundled != projectConfig.JsSdkVersion {
+			fmt.Printf("Warning: mugon.toml declares js-sdk-version %s but the game bundles %s\n", projectConfig.JsSdkVersion, bundled)
+		}
+	}
+	if !service.SdkLoadedFirst(projectConfig.DistributionDir) {
+		fmt.Printf("Warning: the first <script> of index.html does not contain the mugon SDK. It must load before anything else, or large files will not be cached.\n")
+	}
 	return nil
 }

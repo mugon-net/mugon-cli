@@ -2,11 +2,16 @@ package command
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
+	"io/fs"
 	"net"
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -58,6 +63,33 @@ func collectModTimes(rootDir string, paths []string) map[string]time.Time {
 	}
 
 	return modTimes
+}
+
+type devBuildInfo struct {
+	Id         string `json:"id"`
+	TotalBytes int64  `json:"totalBytes"`
+}
+
+// readDevBuildInfo identifies the current contents of the distribution folder,
+// so the parentframe's file cache is never served across rebuilds.
+func readDevBuildInfo(distributionDir string) devBuildInfo {
+	var entries []string
+	var totalBytes int64
+	_ = filepath.WalkDir(distributionDir, func(path string, entry fs.DirEntry, err error) error {
+		if err != nil || entry.IsDir() {
+			return nil
+		}
+		info, err := entry.Info()
+		if err != nil {
+			return nil
+		}
+		totalBytes += info.Size()
+		entries = append(entries, fmt.Sprintf("%s|%d|%d", filepath.ToSlash(path), info.Size(), info.ModTime().UnixNano()))
+		return nil
+	})
+	sort.Strings(entries)
+	hash := sha256.Sum256([]byte(strings.Join(entries, "\n")))
+	return devBuildInfo{Id: hex.EncodeToString(hash[:8]), TotalBytes: totalBytes}
 }
 
 func modTimesChanged(oldTimes, newTimes map[string]time.Time) bool {
@@ -147,7 +179,14 @@ func ExecuteDevCommand(ctx context.Context, c *cli.Command) error {
 		return fmt.Errorf("failed to load parentframe: %w", err)
 	}
 
-	mainServer := &http.Server{Handler: http.FileServer(parentframeFS)}
+	mainMux := http.NewServeMux()
+	mainMux.Handle("/", http.FileServer(parentframeFS))
+	mainMux.HandleFunc("/__mugon/build", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Cache-Control", "no-store")
+		_ = json.NewEncoder(w).Encode(readDevBuildInfo(projectConfig.DistributionDir))
+	})
+	mainServer := &http.Server{Handler: mainMux}
 	// TODO Add Middleware that checks the path of the served file and overwrites the csp meta tag for the index.html
 	childframeHandler := http.FileServer(http.Dir(projectConfig.DistributionDir))
 	childframeServer := &http.Server{

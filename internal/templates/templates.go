@@ -108,6 +108,23 @@ func (i memFileInfo) ModTime() time.Time { return time.Time{} }
 func (i memFileInfo) IsDir() bool        { return false }
 func (i memFileInfo) Sys() any           { return nil }
 
+// renderPath expands template actions in a template's relative path, so that e.g. a
+// `{{.DistributionDir}}` directory lands where the project's config says it should.
+func renderPath(path string, data map[string]string) (string, error) {
+	if !strings.Contains(path, "{{") {
+		return path, nil
+	}
+	tmpl, err := template.New(path).Parse(path)
+	if err != nil {
+		return "", err
+	}
+	var rendered strings.Builder
+	if err := tmpl.Execute(&rendered, data); err != nil {
+		return "", err
+	}
+	return rendered.String(), nil
+}
+
 func InstantiateProjectTemplate(
 	id string,
 	jsSdkVersion string,
@@ -143,7 +160,10 @@ func InstantiateProjectTemplate(
 			return err
 		}
 
-		targetPath := strings.Replace(relPath, ".template", "", 1)
+		targetPath, err := renderPath(strings.Replace(relPath, ".template", "", 1), data)
+		if err != nil {
+			return fmt.Errorf("failed to render template path %s: %w", relPath, err)
+		}
 
 		if dirEntry.IsDir() {
 			if err := os.MkdirAll(targetPath, 0755); err != nil {

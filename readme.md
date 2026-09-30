@@ -173,7 +173,7 @@ os = "linux"
 |---|---|---|---|
 | `id` | Yes | — | Unique project identifier. Must match the project ID on mugon.net. |
 | `version` | Yes | — | Semver version string published when running `mugon publish`. |
-| `js-sdk-version` | Yes | — | Version of the mugon JS SDK the game targets. |
+| `js-sdk-version` | Yes | — | Version of the `@mugon/sdk` the game bundles. Its **major** is recorded with the published version and must match what the game actually bundles: `mugon publish` scans the distribution folder and fails on a major mismatch (a differing minor/patch only warns). |
 | `distribution-dir` | No | `dist` | Directory containing the built game files to be uploaded. |
 | `source-dir` | No | `src` | Source directory. Used as the default for `watch-paths`. |
 | `watch-paths` | No | `[source-dir]` | Paths (files or directories) to watch for changes during `mugon dev`. |

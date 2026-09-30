@@ -1,10 +1,26 @@
 package model
 
-type NoIndexJsPublishError struct {
+type NoIndexHtmlPublishError struct {
 }
 
-func (NoIndexJsPublishError) Error() string {
-	return "Publish failed. The distribution folder does not contain a index.js file."
+func (NoIndexHtmlPublishError) Error() string {
+	return "Publish failed. The distribution folder does not contain an index.html file."
+}
+
+type NoSdkBundledPublishError struct {
+}
+
+func (NoSdkBundledPublishError) Error() string {
+	return "Publish failed. No @mugon/sdk was found in the distribution folder: the game must bundle the SDK (or ship mugon.iife.js) and load it before anything else."
+}
+
+type SdkMajorMismatchPublishError struct {
+	Declared string
+	Bundled  string
+}
+
+func (err SdkMajorMismatchPublishError) Error() string {
+	return "Publish failed. mugon.toml declares js-sdk-version " + err.Declared + " but the distribution folder bundles @mugon/sdk " + err.Bundled + ". The major versions must match."
 }
 
 type CommandNotFoundRunError struct {
