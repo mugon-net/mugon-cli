@@ -45,6 +45,8 @@ mugon-cli:generated-files:
     GOCACHE: $CI_PROJECT_DIR/.cache/go-build
   script:
     - apk add --no-cache nodejs npm git
+    # Alpine ships npm 10, which rewrites lockfiles written by npm 11 (it drops the "libc" fields).
+    - npm install -g npm@11
     # npm ci fails on a stale lockfile instead of rewriting it.
     - npm ci -w @mugon/sdk
     - npm run build -w @mugon/sdk
@@ -57,6 +59,7 @@ mugon-cli:generated-files:
     - |
       if [ -n "$(git status --porcelain -- . ../../package-lock.json)" ]; then
         git status --short -- . ../../package-lock.json
+        git diff --stat -- . ../../package-lock.json
         echo "Generated files are stale: run 'go generate' in libraries/mugon-cli and commit the result."
         exit 1
       fi
@@ -78,6 +81,7 @@ mugon-cli:build:
     GOCACHE: $CI_PROJECT_DIR/.cache/go-build
   script:
     - apk add --no-cache nodejs npm
+    - npm install -g npm@11
     - npm ci -w @mugon/sdk
     - npm run build -w @mugon/sdk
     - cd libraries/mugon-cli
@@ -109,6 +113,7 @@ mugon-cli:release-dry-run:
       - .cache/go-build/
   script:
     - apk add --no-cache nodejs npm
+    - npm install -g npm@11
     - npm ci -w @mugon/sdk
     - npm run build -w @mugon/sdk
     - cd libraries/mugon-cli
