@@ -80,28 +80,31 @@ Builds and publishes the project as a new version on mugon.net.
 mugon publish
 ```
 
-1. Runs the `build` command from `mugon.toml` (prefers the `dev` scope, falls back to `default`).
+1. Runs the `build` command from `mugon.toml` (prefers the `default` scope, falls back to `dev`).
 2. Collects all files from `distribution-dir`.
 3. Creates a new preliminary version via the API.
 4. Uploads files in batches of 10 using presigned URLs.
 5. Finalizes the version; the API validates the upload and activates it.
+
+Before uploading, the CLI also checks the build output: an `@mugon/sdk` has to be bundled, its
+major version has to match `js-sdk-version` in `mugon.toml` (a differing minor or patch version
+only warns), and the first `<script>` of `index.html` should contain the SDK (otherwise it
+warns, because large files then lose caching).
 
 If the upload fails partway through, the preliminary version is automatically deleted.
 
 **Requirements:**
 - A `mugon.toml` must exist in the current directory.
 - Credentials must be stored (run `mugon login` first) or `MUGON_PROJECT_API_KEY` must be set.
-- `distribution-dir` must contain at least one file, including an `index.js` entry point.
+- `distribution-dir` must contain an `index.html` at its root.
 
 ---
 
 ### `mugon dev`
 
-> **Not fully implemented yet.** The core server infrastructure is in place but the dev command is still a work in progress.
-
 Starts a local development environment that mirrors how mugon.net hosts your game:
 
-- A **parent frame** server (the mugon.net shell UI) on an auto-selected port starting at 3000.
+- A **parent frame** server (what mugon.net shows around your game) on the first free port from 3000.
 - A **child frame** server (your game's `distribution-dir`) on the next available port, with a strict Content Security Policy applied.
 - A **WebRTC relay** server for peer-to-peer features.
 - A **file watcher** that re-runs the `build` command on changes.
@@ -200,7 +203,7 @@ The global config is stored in your home directory and managed automatically by 
 my-game = "mgn_proj_xxxxxxxxxxxx"
 another-game = "mgn_proj_yyyyyyyy"
 
-# Optional: override the API endpoint (useful for stage environemtn or local dev)
+# Optional: override the API endpoint (useful for the staging environment or local dev)
 mugon-net-api-url-override = "https://backend.stage.mugon.net/api/v1"
 ```
 
@@ -215,6 +218,14 @@ Credentials can also be supplied at runtime via the `MUGON_PROJECT_API_KEY` envi
 
 ---
 
-## Repository note
+## License
 
-This GitHub repository is a mirror of an internal monorepo. The project is maintained and developed in that internal repository.
+[MIT](LICENSE-MIT)
+
+## Links
+
+- Repository and issues: <https://github.com/mugon-net/mugon-cli>
+- JavaScript SDK: <https://github.com/mugon-net/mugon-sdk-js>
+- Bevy SDK: <https://github.com/mugon-net/mugon-sdk-bevy>
+- Lightyear transport: <https://github.com/mugon-net/mugon-sdk-lightyear>
+- Platform: <https://mugon.net>
