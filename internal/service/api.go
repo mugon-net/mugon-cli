@@ -63,7 +63,7 @@ func (api *Api) GetGameByProjectName(ctx context.Context, projectName string) (o
 		return oapi.GameDTO{}, err
 	}
 	if response.HTTPResponse.StatusCode != 200 {
-		return oapi.GameDTO{}, fmt.Errorf("failed to create version: %s", response.HTTPResponse.Status)
+		return oapi.GameDTO{}, fmt.Errorf("failed to create version: %s", describeApiError(response.Body, response.HTTPResponse))
 	}
 	return response.JSON200.Game, nil
 }
@@ -78,19 +78,22 @@ func (api *Api) CreateVersion(ctx context.Context, projectId uuid.UUID, version 
 		return uuid.UUID{}, err
 	}
 	if response.HTTPResponse.StatusCode != 200 {
-		return uuid.UUID{}, fmt.Errorf("failed to create version: %s", describeApiError(response.Body, response.HTTPResponse.Status))
+		return uuid.UUID{}, fmt.Errorf("failed to create version: %s", describeApiError(response.Body, response.HTTPResponse))
 	}
 	return response.JSON200.GameVersion.Id, nil
 }
 
-// describeApiError prefers the API's own error message over the bare status, so
-// a rejected settings declaration explains which setting is wrong.
-func describeApiError(body []byte, status string) string {
+// describeApiError prefers the API's own error message over the bare status, and
+// falls back to the raw body on 4xx so validator rejections stay readable.
+func describeApiError(body []byte, response *http.Response) string {
 	var errorDto oapi.ErrorDTO
 	if err := json.Unmarshal(body, &errorDto); err == nil && errorDto.Message != "" {
 		return errorDto.Message
 	}
-	return status
+	if response.StatusCode >= 400 && response.StatusCode < 500 && len(body) > 0 {
+		return fmt.Sprintf("%s: %s", response.Status, strings.TrimSpace(string(body)))
+	}
+	return response.Status
 }
 
 func (api *Api) DeleteVersion(ctx context.Context, versionId uuid.UUID) error {
@@ -99,7 +102,7 @@ func (api *Api) DeleteVersion(ctx context.Context, versionId uuid.UUID) error {
 		return err
 	}
 	if response.HTTPResponse.StatusCode != 200 {
-		return fmt.Errorf("failed to delete version: %s", response.HTTPResponse.Status)
+		return fmt.Errorf("failed to delete version: %s", describeApiError(response.Body, response.HTTPResponse))
 	}
 	return nil
 }
@@ -115,7 +118,7 @@ func (api *Api) RequestVersionFileUploadUrls(ctx context.Context, versionId uuid
 		return nil, err
 	}
 	if response.HTTPResponse.StatusCode != 200 {
-		return nil, fmt.Errorf("failed to request upload urls for version: %s", response.HTTPResponse.Status)
+		return nil, fmt.Errorf("failed to request upload urls for version: %s", describeApiError(response.Body, response.HTTPResponse))
 	}
 
 	fileUploadUrlMap := make(map[string]oapi.UploadUrlDTO)
@@ -167,7 +170,7 @@ func (api *Api) FinishVersionUpload(ctx context.Context, versionId uuid.UUID) er
 		return err
 	}
 	if response.HTTPResponse.StatusCode != 200 {
-		return fmt.Errorf("failed to create version: %s", response.HTTPResponse.Status)
+		return fmt.Errorf("failed to create version: %s", describeApiError(response.Body, response.HTTPResponse))
 	}
 	return nil
 }
