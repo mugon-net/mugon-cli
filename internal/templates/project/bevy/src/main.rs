@@ -17,6 +17,11 @@ fn setup(mut commands: Commands, bridge: NonSend<Bridge>) {
         bridge.network_mode(),
         bridge.own_id()
     );
+    // Values the initiator chose for the `[[setting]]`s in mugon.toml. `get_bool`, `get_number`
+    // and `get_strings` read the other setting types.
+    if let Some(greeting) = bridge.get_string("greeting") {
+        info!("{greeting}");
+    }
 
     // The platform shows a loading overlay until the game says it is playable. A game with
     // assets adds `MugonLoadingPlugin` and tracks them, and the overlay closes by itself once

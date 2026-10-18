@@ -70,6 +70,11 @@ func ExecutePublishCommand(ctx context.Context, c *cli.Command) error {
 		return model.NoIndexHtmlPublishError{}
 	}
 
+	settings, err := model.GetSettingDTOs(projectConfig.Settings)
+	if err != nil {
+		return err
+	}
+
 	jsSdkMajor, err := projectConfig.JsSdkMajor()
 	if err != nil {
 		return fmt.Errorf("invalid js-sdk-version %q in mugon.toml: %w", projectConfig.JsSdkVersion, err)
@@ -88,7 +93,7 @@ func ExecutePublishCommand(ctx context.Context, c *cli.Command) error {
 		return err
 	}
 
-	gameVersionId, err := api.CreateVersion(ctx, game.Id, projectConfig.Version, jsSdkMajor)
+	gameVersionId, err := api.CreateVersion(ctx, game.Id, projectConfig.Version, jsSdkMajor, settings, strings.TrimSpace(projectConfig.SettingsValidWhen))
 	if err != nil {
 		return err
 	}

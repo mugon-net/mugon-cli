@@ -1,4 +1,5 @@
 import { Channel } from "@mugon/sdk/protocol";
+import type { SettingValue } from "@mugon/sdk/settings";
 import type {
   NetworkMode,
   ParentframeTransport,
@@ -31,11 +32,16 @@ const CHANNEL_CONFIGS: { label: string; init: RTCDataChannelInit }[] = [
 // the production frontend supplies its own.
 export class RelayTransport implements ParentframeTransport {
   private readonly offerUrl: string;
+  private readonly hostSettings: Record<string, SettingValue>;
   private pc: RTCPeerConnection | undefined;
   private dataChannels: RTCDataChannel[] = [];
 
-  constructor(offerUrl: string) {
+  // `hostSettings` are what this tab's settings panel holds. They are only
+  // sent when this peer connects as the server; the relay serves them to
+  // clients, which fetch them with `fetchHostSettings` before they launch.
+  constructor(offerUrl: string, hostSettings: Record<string, SettingValue>) {
     this.offerUrl = offerUrl;
+    this.hostSettings = hostSettings;
   }
 
   async connect(
@@ -56,7 +62,11 @@ export class RelayTransport implements ParentframeTransport {
     const res = await fetch(this.offerUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sdp: pc.localDescription!.sdp, role: mode }),
+      body: JSON.stringify({
+        sdp: pc.localDescription!.sdp,
+        role: mode,
+        settings: mode === "server" ? this.hostSettings : undefined,
+      }),
     });
     if (!res.ok) {
       throw new Error(`relay responded with ${res.status}`);
@@ -179,4 +189,17 @@ function decodeFrame(data: ArrayBuffer): {
     id: new TextDecoder().decode(bytes.slice(1, 1 + UUID_LEN)),
     payload: bytes.slice(1 + UUID_LEN),
   };
+}
+
+// The settings the relay's current server started the game with, or undefined
+// while no server is connected. A client launches with these, the way mugon.net
+// launches every lobby member with the lobby's values.
+export async function fetchHostSettings(
+  relayUrl: string,
+): Promise<Record<string, SettingValue> | undefined> {
+  const res = await fetch(`${relayUrl}/settings`);
+  if (res.status === 404) return undefined;
+  if (!res.ok) throw new Error(`relay responded with ${res.status}`);
+  const body = (await res.json()) as { settings?: Record<string, SettingValue> };
+  return body.settings ?? {};
 }

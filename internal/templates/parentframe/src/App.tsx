@@ -7,14 +7,27 @@ import {
   Parentframe,
   sdkMajor,
 } from "@mugon/sdk/parentframe";
-import { useEffect, useRef, useState } from "react";
-import { RelayTransport } from "./relay-transport";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  areSettingsValid,
+  compileSettingExpressions,
+} from "@mugon/sdk/expression";
+import {
+  SettingDeclaration,
+  SettingValue,
+  settingValuesFromQuery,
+} from "@mugon/sdk/settings";
+import { resolveNextRoundSettings } from "./next-round";
+import { fetchHostSettings, RelayTransport } from "./relay-transport";
+import { SettingsPanel } from "./settings-panel";
 
 export interface MugonConfig {
   projectId: string;
   jsSdkVersion: string;
   webrtcPort: number;
   gameFramePort: number;
+  settings: SettingDeclaration[];
+  settingsValidWhen: string | null;
 }
 
 type Status =
@@ -49,6 +62,16 @@ const PHASE_LABELS: Record<Exclude<LaunchPhase, "running">, string> = {
 export function App({ config }: { config: MugonConfig }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const parentframeRef = useRef<Parentframe | null>(null);
+  // Seeded from the declared defaults with any `s.<key>` query parameter
+  // applied on top, so a dev can bookmark a specific settings combination.
+  const [settingValues, setSettingValues] = useState<
+    Record<string, SettingValue>
+  >(() =>
+    settingValuesFromQuery(
+      config.settings,
+      new URLSearchParams(window.location.search),
+    ),
+  );
   const declaredMajor = Number(config.jsSdkVersion.split(".")[0]);
   const [status, setStatus] = useState<Status>(
     declaredMajor === sdkMajor
@@ -58,6 +81,10 @@ export function App({ config }: { config: MugonConfig }) {
           message: `mugon.toml declares js-sdk-version major ${declaredMajor}, but this CLI only supports major ${sdkMajor}. Update the CLI or the js-sdk-version.`,
         },
   );
+  // The settings the game proposed for the next round, awaiting confirmation.
+  const [nextRound, setNextRound] = useState<Record<string, SettingValue>>();
+  // Why the game is back at the start screen, when the game caused it.
+  const [notice, setNotice] = useState<string>();
   const [phases, setPhases] = useState<LaunchPhase[]>([]);
   const [progress, setProgress] = useState<LoadProgress>({
     loadedBytes: 0,
@@ -77,15 +104,67 @@ export function App({ config }: { config: MugonConfig }) {
     }
   };
 
-  const launch = async (mode: NetworkMode) => {
+  // Parsed once; the dev server injects the expressions from mugon.toml, so a
+  // bad one shows up here rather than at publish time.
+  const settingExpressions = useMemo(
+    () =>
+      compileSettingExpressions(
+        config.settings,
+        config.settingsValidWhen ?? undefined,
+      ),
+    [config.settings, config.settingsValidWhen],
+  );
+  const settingsValid = areSettingsValid(settingExpressions, settingValues);
+
+  // The dev harness has no lobby: the start screen, with the settings panel
+  // still filled in, stands in for it.
+  const returnToStart = (reason?: string) => {
+    parentframeRef.current?.destroy();
+    parentframeRef.current = null;
+    setNextRound(undefined);
+    setPhases([]);
+    setProgress({ loadedBytes: 0, done: false });
+    setNotice(reason);
+    setStatus({ kind: "idle" });
+  };
+
+  const continueToNextRound = () => {
+    const resolution = resolveNextRoundSettings(
+      config.settings,
+      settingExpressions,
+      nextRound ?? {},
+    );
+    if ("error" in resolution) {
+      returnToStart(
+        `Continuing to the next round failed: ${resolution.error}. The platform would send everyone back to the lobby.`,
+      );
+      return;
+    }
+    returnToStart();
+    setSettingValues(resolution.values);
+    void launch("server", resolution.values);
+  };
+
+  const launch = async (
+    mode: NetworkMode,
+    hostSettings: Record<string, SettingValue> = settingValues,
+  ) => {
+    setNotice(undefined);
     setStatus({ kind: "loading" });
     try {
       const gameUrl = `${location.protocol}//${location.hostname}:${config.gameFramePort}/`;
+      const relayUrl = `${location.protocol}//${location.hostname}:${config.webrtcPort}`;
+      // A client plays with whatever the host started with and never uses its
+      // own panel, so there is nothing to launch until a host exists.
+      const launchSettings =
+        mode === "client" ? await fetchHostSettings(relayUrl) : hostSettings;
+      if (!launchSettings) {
+        setStatus({ kind: "no-server" });
+        return;
+      }
       const build = await readBuildInfo();
       const parentframe = new Parentframe({
-        transport: new RelayTransport(
-          `${location.protocol}//${location.hostname}:${config.webrtcPort}/offer`,
-        ),
+        transport: new RelayTransport(`${relayUrl}/offer`, hostSettings),
         fetchVersionFile: createVersionFileFetcher({
           versionBaseUrl: gameUrl,
           cacheKeyBase: gameUrl,
@@ -93,18 +172,32 @@ export function App({ config }: { config: MugonConfig }) {
         }),
         onPhase: (phase) => setPhases((previous) => [...previous, phase]),
         onProgress: setProgress,
+        onEndGameRequest: () =>
+          returnToStart("The game ended. The platform would return everyone to the lobby."),
+        onNextGameRequest: setNextRound,
       });
       parentframeRef.current = parentframe;
       await parentframe.launch({
         container: containerRef.current!,
         src: gameUrl,
         mode,
+        settings: launchSettings,
         totalBytes: build.totalBytes,
       });
       setStatus({ kind: "running" });
     } catch (error) {
       fail(error);
     }
+  };
+
+  // Before the game frame exists (no host was running at launch) there is
+  // nothing to retry but the launch itself.
+  const retry = () => {
+    if (!parentframeRef.current) {
+      void launch("client");
+      return;
+    }
+    retryNetwork();
   };
 
   const retryNetwork = () => {
@@ -165,13 +258,35 @@ export function App({ config }: { config: MugonConfig }) {
           }}
         />
         {status.kind === "idle" && (
-          <CenteredOverlay>
-            <button className="button" onClick={() => launch("server")}>
-              Start as host
-            </button>
-            <button className="button" onClick={() => launch("client")}>
-              Start as client
-            </button>
+          <CenteredOverlay column>
+            {notice && (
+              <div style={{ color: "#FFD180", maxWidth: "40rem" }}>{notice}</div>
+            )}
+            <div style={{ display: "flex", gap: "1rem" }}>
+              <button
+                className="button"
+                disabled={!settingsValid}
+                title={
+                  settingsValid
+                    ? undefined
+                    : `Settings are not valid yet: ${config.settingsValidWhen}`
+                }
+                onClick={() => launch("server")}
+              >
+                Start as host
+              </button>
+              <button className="button" onClick={() => launch("client")}>
+                Start as client
+              </button>
+            </div>
+            <SettingsPanel
+              declarations={config.settings}
+              values={settingValues}
+              expressions={settingExpressions}
+              onChange={(key, value) =>
+                setSettingValues((current) => ({ ...current, [key]: value }))
+              }
+            />
           </CenteredOverlay>
         )}
         {showOverlay && (
@@ -189,12 +304,27 @@ export function App({ config }: { config: MugonConfig }) {
             <ProgressBar progress={progress} />
           </CenteredOverlay>
         )}
+        {nextRound && (
+          <CenteredOverlay column background>
+            <div style={{ color: "white", fontSize: "1.25rem" }}>
+              Continue to next round?
+            </div>
+            <div style={{ display: "flex", gap: "1rem" }}>
+              <button className="button" onClick={continueToNextRound}>
+                Continue
+              </button>
+              <button className="button" onClick={() => returnToStart()}>
+                Back to start
+              </button>
+            </div>
+          </CenteredOverlay>
+        )}
         {status.kind === "no-server" && (
           <CenteredOverlay column background>
             <div style={{ color: "white" }}>
               No server has been started yet. Start a host first.
             </div>
-            <button className="button" onClick={retryNetwork}>
+            <button className="button" onClick={retry}>
               Retry
             </button>
           </CenteredOverlay>

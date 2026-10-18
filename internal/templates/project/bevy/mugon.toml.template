@@ -10,6 +10,15 @@ distribution-dir = "{{.DistributionDir}}"
 source-dir = "{{.SourceDir}}"
 {{end}}
 
+# Settings the game initiator can adjust before the game starts; the game reads them through
+# `Bridge` (see src/main.rs). Delete this if your game has none.
+[[setting]]
+key = "greeting"
+label = "Greeting"
+type = "text"
+default = "Hello from Mugon"
+max-length = 32
+
 [[command]]
 name = "install"
 command = "npm install"

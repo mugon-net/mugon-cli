@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -67,15 +68,29 @@ func (api *Api) GetGameByProjectName(ctx context.Context, projectName string) (o
 	return response.JSON200.Game, nil
 }
 
-func (api *Api) CreateVersion(ctx context.Context, projectId uuid.UUID, version string, sdkVersion int) (uuid.UUID, error) {
-	response, err := api.client.CreateVersionWithResponse(ctx, oapi.CreateVersionRequest{GameId: projectId, Version: version, SdkVersion: int32(sdkVersion)})
+func (api *Api) CreateVersion(ctx context.Context, projectId uuid.UUID, version string, sdkVersion int, settings []oapi.GameVersionSettingsItemDTO, settingsValidWhen string) (uuid.UUID, error) {
+	request := oapi.CreateVersionRequest{GameId: projectId, Version: version, SdkVersion: int32(sdkVersion), Settings: &settings}
+	if settingsValidWhen != "" {
+		request.SettingsValidWhen = &settingsValidWhen
+	}
+	response, err := api.client.CreateVersionWithResponse(ctx, request)
 	if err != nil {
 		return uuid.UUID{}, err
 	}
 	if response.HTTPResponse.StatusCode != 200 {
-		return uuid.UUID{}, fmt.Errorf("failed to create version: %s", response.HTTPResponse.Status)
+		return uuid.UUID{}, fmt.Errorf("failed to create version: %s", describeApiError(response.Body, response.HTTPResponse.Status))
 	}
 	return response.JSON200.GameVersion.Id, nil
+}
+
+// describeApiError prefers the API's own error message over the bare status, so
+// a rejected settings declaration explains which setting is wrong.
+func describeApiError(body []byte, status string) string {
+	var errorDto oapi.ErrorDTO
+	if err := json.Unmarshal(body, &errorDto); err == nil && errorDto.Message != "" {
+		return errorDto.Message
+	}
+	return status
 }
 
 func (api *Api) DeleteVersion(ctx context.Context, versionId uuid.UUID) error {

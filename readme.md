@@ -96,6 +96,7 @@ If the upload fails partway through, the preliminary version is automatically de
 **Requirements:**
 - A `mugon.toml` must exist in the current directory.
 - Credentials must be stored (run `mugon login` first) or `MUGON_PROJECT_API_KEY` must be set.
+- The API key needs the `version_creator` role (plus `prerelease_tester` for a `PRERELEASE` game).
 - `distribution-dir` must contain an `index.html` at its root.
 
 ---
@@ -168,6 +169,11 @@ scope = "dev"
 name = "build"
 command = "cargo build --target wasm32-unknown-unknown"
 os = "linux"
+
+[[setting]]
+key = "friendly-fire"
+type = "boolean"
+default = false
 ```
 
 ### Fields
@@ -180,6 +186,131 @@ os = "linux"
 | `distribution-dir` | No | `dist` | Directory containing the built game files to be uploaded. |
 | `source-dir` | No | `src` | Source directory. Used as the default for `watch-paths`. |
 | `watch-paths` | No | `[source-dir]` | Paths (files or directories) to watch for changes during `mugon dev`. |
+| `[[setting]]` | No | none | Settings the game initiator can adjust before the game starts — see below. |
+| `settings-valid-when` | No | — | Expression that must be true before the game can start — see below. |
+
+### `[[setting]]` entries
+
+Settings are declared per project and persisted with the version that `mugon publish` uploads. The initiator of a game adjusts them before the game starts, and the chosen values reach the game through the SDK (`context.settings`, or the typed `getBoolean`, `getNumber`, `getString`, `getStrings` helpers on the `Mugon.start` context).
+
+Settings are **immutable once a version is published** — changing a declaration means publishing a new version. Render order follows declaration order, and `mugon dev` shows the same settings in a panel next to the game so they can be exercised locally.
+
+```toml
+[[setting]]
+key = "friendly-fire"
+label = "Friendly fire"
+tab = "Gameplay"
+type = "boolean"
+default = false
+
+[[setting]]
+key = "round-time"
+label = "Round time (s)"
+tab = "Gameplay"
+type = "number"
+min = 30
+max = 600
+step = 30
+default = 120
+ui = "slider"
+
+[[setting]]
+key = "map"
+type = "select"
+options = ["desert", "forest"]
+default = "desert"
+
+[[setting]]
+key = "modifiers"
+type = "select"
+multiple = true
+options = [
+    { value = "fast", label = "Fast rounds" },
+    { value = "low_gravity", label = "Low gravity" },
+]
+default = ["fast"]
+
+[[setting]]
+key = "server.name"
+type = "text"
+default = "My server"
+max-length = 32
+```
+
+| Field | Required | Default | Description |
+|---|---|---|---|
+| `key` | Yes | — | The key the game reads the value by. Lowercase alphanumeric segments separated by `.`, `_` or `-`. The `mugon.` namespace is reserved for the SDK's own keys. |
+| `type` | Yes | — | `boolean`, `number`, `select` or `text`. |
+| `default` | Yes | — | The value the setting starts at. Must match `type`; for `select` either a single string or a list of strings. |
+| `label` | No | `key` | Display name in the settings UI. |
+| `description` | No | `""` | Longer explanation shown alongside the input. |
+| `tab` | No | `General` | Groups settings into tabs in the settings UI. |
+| `ui` | No | — | Input to render. `boolean`: `switch`, `checkbox`. `number`: `slider`, `number-input`. `select`: `dropdown`, `segmented-control`, `radio-cards`. `text`: `text-input`, `textarea`. Omit to let the UI pick. |
+| `min`, `max` | `number` only | — | Bounds of the allowed range. Both required for a number setting. |
+| `step` | No | `1` | Increment of a number setting. The default must be reachable from `min` in whole steps. |
+| `options` | `select` only | — | The choices, either bare strings (label = value) or `{ value = "...", label = "..." }` tables. |
+| `multiple` | No | `false` | Whether a `select` setting takes more than one value. |
+| `max-length` | No | `1024` | Maximum length of a `text` setting's value. |
+| `enabled-when` | No | — | Expression that must be true for this setting to be editable — see below. |
+
+#### Presetting values from the URL
+
+Both `mugon dev` and mugon.net read starting values for settings from query parameters prefixed with `s.`, so a particular combination can be bookmarked or shared:
+
+```
+http://localhost:5173/?s.friendly-fire=true&s.round-time=180&s.map=forest
+https://mugon.net/play?g=my-game&s.modifiers=fast,low_gravity
+```
+
+| Type | Accepted | Notes |
+|---|---|---|
+| `boolean` | `true`, `false`, `1`, `0` | Case insensitive. |
+| `number` | Any number | Clamped into `[min, max]` and snapped to the nearest `step`. |
+| `select` | `?s.k=a&s.k=b` or `?s.k=a,b` | Every value must be a declared option, otherwise the parameter is ignored. A single-choice select takes one value. |
+| `text` | Any string | Truncated to `max-length`. |
+
+A parameter that names an unknown setting, or carries a value that isn't valid for its type, is reported on the console and that setting stays at its default — one stale parameter in a shared link cannot make a game unstartable. The values are only a starting point: the initiator can still change them before starting. A peer that *joins* an existing game reads the parameters too, but they are never sent — a joining peer always plays with the values the host started with.
+
+#### Gating settings with expressions
+
+Two fields take an expression that must evaluate to a boolean:
+
+| Field | Where | Meaning |
+|---|---|---|
+| `enabled-when` | on a `[[setting]]` | the initiator may change that setting only while it is true |
+| `settings-valid-when` | top level | the game may only start while it is true |
+
+```toml
+settings-valid-when = 'settings["min-players"] < settings["max-players"]'
+
+[[setting]]
+key = "bots"
+type = "boolean"
+default = false
+
+[[setting]]
+key = "bot-count"
+label = "Number of bots"
+type = "number"
+min = 1
+max = 8
+default = 4
+enabled-when = 'settings["bots"]'
+```
+
+Expressions are a restricted subset of [CEL](https://cel.dev/), fully specified in [`specs/expressions/grammar.md`](../../specs/expressions/grammar.md). In short:
+
+- Reference a setting as `settings["<key>"]`; that is the only variable in scope.
+- Operators: `&&` `||` `!`, `==` `!=`, `<` `<=` `>` `>=`, `+` `-` `*` `/`, `in`, and `cond ? a : b`.
+- One function: `size(x)`, for the length of a multi-select or a string.
+- Nothing else — no macros, no type conversions, no string methods, no list literals.
+
+Two behaviours worth knowing up front:
+
+- **Every number setting is a `double`.** Comparisons accept plain integers (`settings["round-time"] >= 60`), but arithmetic needs a decimal point (`settings["round-time"] + 1.0`), because CEL has no `double + int` overload.
+- **A disabled setting keeps its value**; only its input locks. A game should check the gating setting itself before reading a gated one.
+
+Expressions are validated when you publish, against the settings that same version declares, so a typo, an undeclared key, a non-boolean result, or a type mismatch fails `mugon publish` with an explanation rather than misbehaving at play time. `mugon dev` evaluates them straight from `mugon.toml`, reporting problems in the browser console instead.
 
 ### `[[command]]` entries
 

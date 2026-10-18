@@ -31,6 +31,11 @@ type ProjectConfig struct {
 	WatchPaths []string `toml:"watch-paths" validate:"min=1,dive,required"`
 
 	Commands []CommandConfig `toml:"command" validate:"dive"`
+	Settings []SettingConfig `toml:"setting" validate:"dive"`
+
+	// SettingsValidWhen is a CEL expression that must hold before the game can
+	// start; the backend validates it when publishing.
+	SettingsValidWhen string `toml:"settings-valid-when"`
 
 	RootDir string
 }
@@ -70,6 +75,7 @@ func ReadProjectConfig(ctx context.Context, c *cli.Command) (context.Context, er
 		DistributionDir: DefaultDistributionDir,
 		SourceDir:       DefaultSourceDir,
 		Commands:        []CommandConfig{},
+		Settings:        []SettingConfig{},
 	}
 
 	if _, err := toml.DecodeFile(projectConfigPath, &projectConfig); err != nil {

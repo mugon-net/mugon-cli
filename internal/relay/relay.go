@@ -92,6 +92,9 @@ type peer struct {
 	id   uuid.UUID
 	role role
 	pc   *webrtc.PeerConnection
+	// settings are the values the server peer started the game with, which
+	// clients fetch from /settings before they launch.
+	settings json.RawMessage
 
 	mu       sync.Mutex
 	channels [channelCount]channel
@@ -142,13 +145,14 @@ func New() *Relay {
 func (r *Relay) Handler() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/offer", r.handleOffer)
+	mux.HandleFunc("/settings", r.handleSettings)
 	return corsMiddleware(mux)
 }
 
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 		if req.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusNoContent)
@@ -161,12 +165,38 @@ func corsMiddleware(next http.Handler) http.Handler {
 type offerRequest struct {
 	SDP  string `json:"sdp"`
 	Role string `json:"role"`
+	// Settings are only read from a server; a client's are ignored.
+	Settings json.RawMessage `json:"settings,omitempty"`
 }
 
 type offerResponse struct {
 	SDP      string `json:"sdp"`
 	ClientID string `json:"clientId"`
 	ServerID string `json:"serverId,omitempty"`
+}
+
+type settingsResponse struct {
+	Settings json.RawMessage `json:"settings,omitempty"`
+}
+
+// handleSettings returns the settings the current server started the game with,
+// or 404 while no server is connected.
+func (r *Relay) handleSettings(w http.ResponseWriter, req *http.Request) {
+	if req.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	r.mu.Lock()
+	server := r.serverPeer
+	r.mu.Unlock()
+	if server == nil {
+		http.Error(w, "no server connected", http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(settingsResponse{Settings: server.settings})
 }
 
 func (r *Relay) handleOffer(w http.ResponseWriter, req *http.Request) {
@@ -194,6 +224,9 @@ func (r *Relay) handleOffer(w http.ResponseWriter, req *http.Request) {
 	}
 
 	p := &peer{id: uuid.New(), role: peerRole, pc: pc}
+	if peerRole == roleServer {
+		p.settings = body.Settings
+	}
 
 	pc.OnDataChannel(func(dc *webrtc.DataChannel) {
 		index, ok := channelIndexForLabel(dc.Label())

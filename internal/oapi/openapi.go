@@ -679,6 +679,69 @@ func (e BotttsOptionsDTOTop) Valid() bool {
 	}
 }
 
+// Defines values for GameVersionSettingTypeEnum.
+const (
+	GameVersionSettingTypeEnumBOOLEAN GameVersionSettingTypeEnum = "BOOLEAN"
+	GameVersionSettingTypeEnumNUMBER  GameVersionSettingTypeEnum = "NUMBER"
+	GameVersionSettingTypeEnumSELECT  GameVersionSettingTypeEnum = "SELECT"
+	GameVersionSettingTypeEnumTEXT    GameVersionSettingTypeEnum = "TEXT"
+)
+
+// Valid indicates whether the value is a known member of the GameVersionSettingTypeEnum enum.
+func (e GameVersionSettingTypeEnum) Valid() bool {
+	switch e {
+	case GameVersionSettingTypeEnumBOOLEAN:
+		return true
+	case GameVersionSettingTypeEnumNUMBER:
+		return true
+	case GameVersionSettingTypeEnumSELECT:
+		return true
+	case GameVersionSettingTypeEnumTEXT:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GameVersionSettingUiEnum.
+const (
+	GameVersionSettingUiEnumCHECKBOX         GameVersionSettingUiEnum = "CHECKBOX"
+	GameVersionSettingUiEnumDROPDOWN         GameVersionSettingUiEnum = "DROPDOWN"
+	GameVersionSettingUiEnumNUMBERINPUT      GameVersionSettingUiEnum = "NUMBER_INPUT"
+	GameVersionSettingUiEnumRADIOCARDS       GameVersionSettingUiEnum = "RADIO_CARDS"
+	GameVersionSettingUiEnumSEGMENTEDCONTROL GameVersionSettingUiEnum = "SEGMENTED_CONTROL"
+	GameVersionSettingUiEnumSLIDER           GameVersionSettingUiEnum = "SLIDER"
+	GameVersionSettingUiEnumSWITCH           GameVersionSettingUiEnum = "SWITCH"
+	GameVersionSettingUiEnumTEXTAREA         GameVersionSettingUiEnum = "TEXTAREA"
+	GameVersionSettingUiEnumTEXTINPUT        GameVersionSettingUiEnum = "TEXT_INPUT"
+)
+
+// Valid indicates whether the value is a known member of the GameVersionSettingUiEnum enum.
+func (e GameVersionSettingUiEnum) Valid() bool {
+	switch e {
+	case GameVersionSettingUiEnumCHECKBOX:
+		return true
+	case GameVersionSettingUiEnumDROPDOWN:
+		return true
+	case GameVersionSettingUiEnumNUMBERINPUT:
+		return true
+	case GameVersionSettingUiEnumRADIOCARDS:
+		return true
+	case GameVersionSettingUiEnumSEGMENTEDCONTROL:
+		return true
+	case GameVersionSettingUiEnumSLIDER:
+		return true
+	case GameVersionSettingUiEnumSWITCH:
+		return true
+	case GameVersionSettingUiEnumTEXTAREA:
+		return true
+	case GameVersionSettingUiEnumTEXTINPUT:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for GameVisibilityEnum.
 const (
 	GameVisibilityEnumCREATING   GameVisibilityEnum = "CREATING"
@@ -703,6 +766,48 @@ func (e GameVisibilityEnum) Valid() bool {
 	}
 }
 
+// Defines values for LobbyJoinModeEnum.
+const (
+	LobbyJoinModeEnumCOMMUNITY  LobbyJoinModeEnum = "COMMUNITY"
+	LobbyJoinModeEnumFRIENDS    LobbyJoinModeEnum = "FRIENDS"
+	LobbyJoinModeEnumINVITEONLY LobbyJoinModeEnum = "INVITE_ONLY"
+	LobbyJoinModeEnumLINK       LobbyJoinModeEnum = "LINK"
+)
+
+// Valid indicates whether the value is a known member of the LobbyJoinModeEnum enum.
+func (e LobbyJoinModeEnum) Valid() bool {
+	switch e {
+	case LobbyJoinModeEnumCOMMUNITY:
+		return true
+	case LobbyJoinModeEnumFRIENDS:
+		return true
+	case LobbyJoinModeEnumINVITEONLY:
+		return true
+	case LobbyJoinModeEnumLINK:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for LobbyMemberFilterEnum.
+const (
+	LobbyMemberFilterEnumFRIENDS LobbyMemberFilterEnum = "FRIENDS"
+	LobbyMemberFilterEnumGUESTS  LobbyMemberFilterEnum = "GUESTS"
+)
+
+// Valid indicates whether the value is a known member of the LobbyMemberFilterEnum enum.
+func (e LobbyMemberFilterEnum) Valid() bool {
+	switch e {
+	case LobbyMemberFilterEnumFRIENDS:
+		return true
+	case LobbyMemberFilterEnumGUESTS:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for MultiplayerModeEnum.
 const (
 	MultiplayerModeEnumCOMMUNITY    MultiplayerModeEnum = "COMMUNITY"
@@ -718,48 +823,6 @@ func (e MultiplayerModeEnum) Valid() bool {
 	case MultiplayerModeEnumPARTY:
 		return true
 	case MultiplayerModeEnumSINGLEPLAYER:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for PartyJoinModeEnum.
-const (
-	PartyJoinModeEnumCOMMUNITY  PartyJoinModeEnum = "COMMUNITY"
-	PartyJoinModeEnumFRIENDS    PartyJoinModeEnum = "FRIENDS"
-	PartyJoinModeEnumINVITEONLY PartyJoinModeEnum = "INVITE_ONLY"
-	PartyJoinModeEnumLINK       PartyJoinModeEnum = "LINK"
-)
-
-// Valid indicates whether the value is a known member of the PartyJoinModeEnum enum.
-func (e PartyJoinModeEnum) Valid() bool {
-	switch e {
-	case PartyJoinModeEnumCOMMUNITY:
-		return true
-	case PartyJoinModeEnumFRIENDS:
-		return true
-	case PartyJoinModeEnumINVITEONLY:
-		return true
-	case PartyJoinModeEnumLINK:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for PartyModeEnum.
-const (
-	PartyModeEnumCOMMUNITY PartyModeEnum = "COMMUNITY"
-	PartyModeEnumNORMAL    PartyModeEnum = "NORMAL"
-)
-
-// Valid indicates whether the value is a known member of the PartyModeEnum enum.
-func (e PartyModeEnum) Valid() bool {
-	switch e {
-	case PartyModeEnumCOMMUNITY:
-		return true
-	case PartyModeEnumNORMAL:
 		return true
 	default:
 		return false
@@ -1157,12 +1220,6 @@ type CreateApiKeyRequest struct {
 	RoleNames   []string           `json:"roleNames"`
 }
 
-// CreateGameInstanceRequest defines model for CreateGameInstanceRequest.
-type CreateGameInstanceRequest struct {
-	GameName        string              `json:"gameName"`
-	MultiplayerMode MultiplayerModeEnum `json:"multiplayerMode"`
-}
-
 // CreateGameRequest defines model for CreateGameRequest.
 type CreateGameRequest struct {
 	Description               string                `json:"description"`
@@ -1170,14 +1227,26 @@ type CreateGameRequest struct {
 	SupportedMultiplayerModes []MultiplayerModeEnum `json:"supportedMultiplayerModes"`
 }
 
+// CreateLobbyInviteRequest defines model for CreateLobbyInviteRequest.
+type CreateLobbyInviteRequest struct {
+	InviteeIdentityId openapi_types.UUID `json:"inviteeIdentityId"`
+	LobbyId           openapi_types.UUID `json:"lobbyId"`
+}
+
+// CreateLobbyRequest defines model for CreateLobbyRequest.
+type CreateLobbyRequest struct {
+	JoinMode LobbyJoinModeEnum `json:"joinMode"`
+}
+
 // CreateVersionRequest defines model for CreateVersionRequest.
 type CreateVersionRequest struct {
 	GameId openapi_types.UUID `json:"gameId"`
 
 	// SdkVersion Major version of the @mugon/sdk the game uses.
-	SdkVersion int32                   `json:"sdkVersion"`
-	Settings   *GameVersionSettingsDTO `json:"settings,omitempty"`
-	Version    string                  `json:"version"`
+	SdkVersion        int32                   `json:"sdkVersion"`
+	Settings          *GameVersionSettingsDTO `json:"settings,omitempty"`
+	SettingsValidWhen *string                 `json:"settingsValidWhen,omitempty"`
+	Version           string                  `json:"version"`
 }
 
 // DecodedApiKeyDTO defines model for DecodedApiKeyDTO.
@@ -1231,19 +1300,11 @@ type GameDTO struct {
 
 // GameInstanceDTO defines model for GameInstanceDTO.
 type GameInstanceDTO struct {
-	ConnectedPlayers int32               `json:"connectedPlayers"`
-	GameId           openapi_types.UUID  `json:"gameId"`
-	GameVersion      openapi_types.UUID  `json:"gameVersion"`
-	Id               openapi_types.UUID  `json:"id"`
-	InitiatedBy      openapi_types.UUID  `json:"initiatedBy"`
-	MultiplayerMode  MultiplayerModeEnum `json:"multiplayerMode"`
-	Settings         *[]struct {
-		BooleanValue *bool    `json:"booleanValue,omitempty"`
-		Name         string   `json:"name"`
-		NumberValue  *float32 `json:"numberValue,omitempty"`
-		SelectValue  *string  `json:"selectValue,omitempty"`
-	} `json:"settings,omitempty"`
-	Started time.Time `json:"started"`
+	GameId      openapi_types.UUID `json:"gameId"`
+	GameVersion openapi_types.UUID `json:"gameVersion"`
+	Id          openapi_types.UUID `json:"id"`
+	LobbyId     openapi_types.UUID `json:"lobbyId"`
+	Started     time.Time          `json:"started"`
 }
 
 // GameVersionDTO defines model for GameVersionDTO.
@@ -1255,32 +1316,70 @@ type GameVersionDTO struct {
 	Id         openapi_types.UUID     `json:"id"`
 	SdkVersion int32                  `json:"sdkVersion"`
 	Settings   GameVersionSettingsDTO `json:"settings"`
-	Size       int32                  `json:"size"`
-	Version    string                 `json:"version"`
-	Visibility GameVisibilityEnum     `json:"visibility"`
+
+	// SettingsValidWhen CEL expression that must be true before the game can start. Absent means the settings are always valid.
+	SettingsValidWhen *string            `json:"settingsValidWhen,omitempty"`
+	Size              int32              `json:"size"`
+	Version           string             `json:"version"`
+	Visibility        GameVisibilityEnum `json:"visibility"`
 }
+
+// GameVersionSettingBoolDTO defines model for GameVersionSettingBoolDTO.
+type GameVersionSettingBoolDTO struct {
+	DefaultValue bool `json:"defaultValue"`
+}
+
+// GameVersionSettingNumberDTO defines model for GameVersionSettingNumberDTO.
+type GameVersionSettingNumberDTO struct {
+	DefaultValue float64 `json:"defaultValue"`
+	Max          float64 `json:"max"`
+	Min          float64 `json:"min"`
+	Step         float64 `json:"step"`
+}
+
+// GameVersionSettingOptionDTO defines model for GameVersionSettingOptionDTO.
+type GameVersionSettingOptionDTO struct {
+	Label string `json:"label"`
+	Value string `json:"value"`
+}
+
+// GameVersionSettingSelectDTO defines model for GameVersionSettingSelectDTO.
+type GameVersionSettingSelectDTO struct {
+	DefaultValue []string                      `json:"defaultValue"`
+	Multiple     bool                          `json:"multiple"`
+	Options      []GameVersionSettingOptionDTO `json:"options"`
+}
+
+// GameVersionSettingTextDTO defines model for GameVersionSettingTextDTO.
+type GameVersionSettingTextDTO struct {
+	DefaultValue string `json:"defaultValue"`
+	MaxLength    *int32 `json:"maxLength,omitempty"`
+}
+
+// GameVersionSettingTypeEnum defines model for GameVersionSettingTypeEnum.
+type GameVersionSettingTypeEnum string
+
+// GameVersionSettingUiEnum defines model for GameVersionSettingUiEnum.
+type GameVersionSettingUiEnum string
 
 // GameVersionSettingsDTO defines model for GameVersionSettingsDTO.
 type GameVersionSettingsDTO = []GameVersionSettingsItemDTO
 
 // GameVersionSettingsItemDTO defines model for GameVersionSettingsItemDTO.
 type GameVersionSettingsItemDTO struct {
-	Boolean *struct {
-		DefaultValue bool `json:"defaultValue"`
-	} `json:"boolean,omitempty"`
-	Name   string `json:"name"`
-	Number *struct {
-		DefaultValue float32 `json:"defaultValue"`
-		Max          float32 `json:"max"`
-		Min          float32 `json:"min"`
-		Step         float32 `json:"step"`
-	} `json:"number,omitempty"`
-	Select *struct {
-		DefaultValue string   `json:"defaultValue"`
-		Multiple     bool     `json:"multiple"`
-		Options      []string `json:"options"`
-	} `json:"select,omitempty"`
-	Tab string `json:"tab"`
+	Bool        *GameVersionSettingBoolDTO `json:"bool,omitempty"`
+	Description string                     `json:"description"`
+
+	// EnabledWhen CEL expression, in the subset described by specs/expressions/grammar.md, that must be true for the initiator to be able to change this setting. Absent means always editable.
+	EnabledWhen *string                      `json:"enabledWhen,omitempty"`
+	Key         string                       `json:"key"`
+	Label       string                       `json:"label"`
+	Number      *GameVersionSettingNumberDTO `json:"number,omitempty"`
+	Select      *GameVersionSettingSelectDTO `json:"select,omitempty"`
+	Tab         string                       `json:"tab"`
+	Text        *GameVersionSettingTextDTO   `json:"text,omitempty"`
+	Type        GameVersionSettingTypeEnum   `json:"type"`
+	Ui          *GameVersionSettingUiEnum    `json:"ui,omitempty"`
 }
 
 // GameVisibilityEnum defines model for GameVisibilityEnum.
@@ -1303,6 +1402,53 @@ type IdentityRoleDTO struct {
 	Role       RoleDTO            `json:"role"`
 }
 
+// JoinLobbyRequest defines model for JoinLobbyRequest.
+type JoinLobbyRequest struct {
+	LobbyId openapi_types.UUID `json:"lobbyId"`
+}
+
+// LeaveLobbyRequest defines model for LeaveLobbyRequest.
+type LeaveLobbyRequest struct {
+	IdentityId *openapi_types.UUID `json:"identityId,omitempty"`
+	LobbyId    openapi_types.UUID  `json:"lobbyId"`
+}
+
+// LobbyDTO defines model for LobbyDTO.
+type LobbyDTO struct {
+	Created               time.Time              `json:"created"`
+	Id                    openapi_types.UUID     `json:"id"`
+	JoinMode              LobbyJoinModeEnum      `json:"joinMode"`
+	Leader                UserDTO                `json:"leader"`
+	SelectedGame          *GameDTO               `json:"selectedGame,omitempty"`
+	SelectedGameVersion   *GameVersionDTO        `json:"selectedGameVersion,omitempty"`
+	SelectedGameVersionId *openapi_types.UUID    `json:"selectedGameVersionId,omitempty"`
+	SettingValues         []LobbySettingValueDTO `json:"settingValues"`
+}
+
+// LobbyInviteDTO defines model for LobbyInviteDTO.
+type LobbyInviteDTO struct {
+	Created time.Time          `json:"created"`
+	Id      openapi_types.UUID `json:"id"`
+	Invitee UserDTO            `json:"invitee"`
+	Inviter UserDTO            `json:"inviter"`
+	LobbyId openapi_types.UUID `json:"lobbyId"`
+}
+
+// LobbyJoinModeEnum defines model for LobbyJoinModeEnum.
+type LobbyJoinModeEnum string
+
+// LobbyMemberFilterEnum defines model for LobbyMemberFilterEnum.
+type LobbyMemberFilterEnum string
+
+// LobbySettingValueDTO defines model for LobbySettingValueDTO.
+type LobbySettingValueDTO struct {
+	BoolValue    *bool     `json:"boolValue,omitempty"`
+	Key          string    `json:"key"`
+	NumberValue  *float64  `json:"numberValue,omitempty"`
+	SelectValues *[]string `json:"selectValues,omitempty"`
+	TextValue    *string   `json:"textValue,omitempty"`
+}
+
 // ManagementRoleAssignment defines model for ManagementRoleAssignment.
 type ManagementRoleAssignment struct {
 	Assignment IdentityRoleDTO     `json:"assignment"`
@@ -1318,21 +1464,6 @@ type Pagination struct {
 	Page     int32 `json:"page"`
 	PageSize int32 `json:"pageSize"`
 }
-
-// PartyDTO defines model for PartyDTO.
-type PartyDTO struct {
-	Created       time.Time          `json:"created"`
-	Id            openapi_types.UUID `json:"id"`
-	Leader        UserDTO            `json:"leader"`
-	PartyJoinMode PartyJoinModeEnum  `json:"partyJoinMode"`
-	PartyMode     PartyModeEnum      `json:"partyMode"`
-}
-
-// PartyJoinModeEnum defines model for PartyJoinModeEnum.
-type PartyJoinModeEnum string
-
-// PartyModeEnum defines model for PartyModeEnum.
-type PartyModeEnum string
 
 // PostAuthGuestResponseBody defines model for PostAuthGuestResponseBody.
 type PostAuthGuestResponseBody struct {
@@ -1352,8 +1483,24 @@ type PostUserRequest struct {
 	UserName    string `json:"userName"`
 }
 
+// PromoteLobbyLeaderRequest defines model for PromoteLobbyLeaderRequest.
+type PromoteLobbyLeaderRequest struct {
+	IdentityId openapi_types.UUID `json:"identityId"`
+	LobbyId    openapi_types.UUID `json:"lobbyId"`
+}
+
 // ProviderEnum defines model for ProviderEnum.
 type ProviderEnum string
+
+// RestartLobbyRequest defines model for RestartLobbyRequest.
+type RestartLobbyRequest struct {
+	// GameInstanceId The instance being replaced; anything else is answered with 409.
+	GameInstanceId openapi_types.UUID `json:"gameInstanceId"`
+	LobbyId        openapi_types.UUID `json:"lobbyId"`
+
+	// SettingValues The complete set of setting values, replacing the lobby's. Settings left out take their declared defaults, as when starting from the lobby.
+	SettingValues []LobbySettingValueDTO `json:"settingValues"`
+}
 
 // RoleDTO defines model for RoleDTO.
 type RoleDTO struct {
@@ -1370,9 +1517,15 @@ type ServerUserEventDTO struct {
 	Created           *int64                             `json:"created,omitempty"`
 	FromIdentityId    openapi_types.UUID                 `json:"fromIdentityId"`
 	Id                string                             `json:"id"`
+	LobbyUpdated      *ServerUserLobbyUpdatedEventDTO    `json:"lobbyUpdated,omitempty"`
 	NewFriendInvite   *ServerUserNewFriendInviteEventDTO `json:"newFriendInvite,omitempty"`
-	NewPartyInvite    *ServerUserNewPartyInviteEventDTO  `json:"newPartyInvite,omitempty"`
+	NewLobbyInvite    *ServerUserNewLobbyInviteEventDTO  `json:"newLobbyInvite,omitempty"`
 	NewSignalingEvent *SignalingEventDTO                 `json:"newSignalingEvent,omitempty"`
+}
+
+// ServerUserLobbyUpdatedEventDTO defines model for ServerUserLobbyUpdatedEventDTO.
+type ServerUserLobbyUpdatedEventDTO struct {
+	LobbyId string `json:"lobbyId"`
 }
 
 // ServerUserNewFriendInviteEventDTO defines model for ServerUserNewFriendInviteEventDTO.
@@ -1383,12 +1536,13 @@ type ServerUserNewFriendInviteEventDTO struct {
 	InviterId          string    `json:"inviterId"`
 }
 
-// ServerUserNewPartyInviteEventDTO defines model for ServerUserNewPartyInviteEventDTO.
-type ServerUserNewPartyInviteEventDTO struct {
+// ServerUserNewLobbyInviteEventDTO defines model for ServerUserNewLobbyInviteEventDTO.
+type ServerUserNewLobbyInviteEventDTO struct {
 	InviteId           string    `json:"inviteId"`
 	InviterAvatar      AvatarDTO `json:"inviterAvatar"`
 	InviterDisplayName string    `json:"inviterDisplayName"`
 	InviterId          string    `json:"inviterId"`
+	LobbyId            string    `json:"lobbyId"`
 }
 
 // SignalingCandidateDTO defines model for SignalingCandidateDTO.
@@ -1403,6 +1557,7 @@ type SignalingCandidateDTO struct {
 type SignalingEventDTO struct {
 	Answer           *SignalingSessionDescriptionDTO `json:"answer,omitempty"`
 	AnswerCandidate  *SignalingCandidateDTO          `json:"answerCandidate,omitempty"`
+	GameInstanceId   openapi_types.UUID              `json:"gameInstanceId"`
 	JoinRequest      *bool                           `json:"joinRequest,omitempty"`
 	Offer            *SignalingSessionDescriptionDTO `json:"offer,omitempty"`
 	OfferCandidate   *SignalingCandidateDTO          `json:"offerCandidate,omitempty"`
@@ -1413,6 +1568,11 @@ type SignalingEventDTO struct {
 type SignalingSessionDescriptionDTO struct {
 	Sdp  *string `json:"sdp,omitempty"`
 	Type string  `json:"type"`
+}
+
+// StartLobbyRequest defines model for StartLobbyRequest.
+type StartLobbyRequest struct {
+	LobbyId openapi_types.UUID `json:"lobbyId"`
 }
 
 // ThumbnailOrientationEnum defines model for ThumbnailOrientationEnum.
@@ -1471,6 +1631,16 @@ type UpdateGameRequest struct {
 type UpdateGameVersionRequest struct {
 	Id         openapi_types.UUID  `json:"id"`
 	Visibility *GameVisibilityEnum `json:"visibility,omitempty"`
+}
+
+// UpdateLobbyRequest defines model for UpdateLobbyRequest.
+type UpdateLobbyRequest struct {
+	GameVersionId *openapi_types.UUID `json:"gameVersionId,omitempty"`
+	JoinMode      *LobbyJoinModeEnum  `json:"joinMode,omitempty"`
+	LobbyId       openapi_types.UUID  `json:"lobbyId"`
+
+	// SettingValues Values for the settings the selected game version declares. Absent leaves them untouched; selecting a different game version resets them to that version's defaults before these are applied.
+	SettingValues *[]LobbySettingValueDTO `json:"settingValues,omitempty"`
 }
 
 // UpdateUserAvatarRequest defines model for UpdateUserAvatarRequest.
@@ -1538,11 +1708,6 @@ type FriendshipResponse struct {
 	Friendship FriendshipDTO `json:"friendship"`
 }
 
-// GameInstanceResponse defines model for GameInstanceResponse.
-type GameInstanceResponse struct {
-	GameInstance GameInstanceDTO `json:"gameInstance"`
-}
-
 // GameLatestResponse defines model for GameLatestResponse.
 type GameLatestResponse struct {
 	EngineCdnToken CdnTokenDTO     `json:"engineCdnToken"`
@@ -1578,6 +1743,12 @@ type GetFriendsResponse struct {
 	Total   *int            `json:"total,omitempty"`
 }
 
+// GetLobbyInvitesResponse defines model for GetLobbyInvitesResponse.
+type GetLobbyInvitesResponse struct {
+	Invites []LobbyInviteDTO `json:"invites"`
+	Total   *int             `json:"total,omitempty"`
+}
+
 // GetRoleAssignmentsManagementViewResponse defines model for GetRoleAssignmentsManagementViewResponse.
 type GetRoleAssignmentsManagementViewResponse struct {
 	Items []ManagementRoleAssignment `json:"items"`
@@ -1601,6 +1772,34 @@ type GetUserRolesResponse struct {
 type GetVersionsResponse struct {
 	Total    *int32           `json:"total,omitempty"`
 	Versions []GameVersionDTO `json:"versions"`
+}
+
+// LobbyInstanceResponse defines model for LobbyInstanceResponse.
+type LobbyInstanceResponse struct {
+	Instance GameInstanceDTO `json:"instance"`
+	Lobby    LobbyDTO        `json:"lobby"`
+}
+
+// LobbyInviteResponse defines model for LobbyInviteResponse.
+type LobbyInviteResponse struct {
+	Invite LobbyInviteDTO `json:"invite"`
+}
+
+// LobbyMembersResponse defines model for LobbyMembersResponse.
+type LobbyMembersResponse struct {
+	Members []UserDTO `json:"members"`
+	Total   *int      `json:"total,omitempty"`
+}
+
+// LobbyResponse defines model for LobbyResponse.
+type LobbyResponse struct {
+	Lobby LobbyDTO `json:"lobby"`
+}
+
+// LobbyStateResponse defines model for LobbyStateResponse.
+type LobbyStateResponse struct {
+	Instance *GameInstanceDTO `json:"instance,omitempty"`
+	Lobby    LobbyDTO         `json:"lobby"`
 }
 
 // PostAuthGuestResponse defines model for PostAuthGuestResponse.
@@ -1714,6 +1913,38 @@ type PostGameAliveParams struct {
 	GameInstanceId openapi_types.UUID `form:"gameInstanceId" json:"gameInstanceId"`
 }
 
+// DeleteLobbyParams defines parameters for DeleteLobby.
+type DeleteLobbyParams struct {
+	LobbyId openapi_types.UUID `form:"lobbyId" json:"lobbyId"`
+}
+
+// GetLobbyParams defines parameters for GetLobby.
+type GetLobbyParams struct {
+	LobbyId openapi_types.UUID `form:"lobbyId" json:"lobbyId"`
+}
+
+// DeleteLobbyInviteParams defines parameters for DeleteLobbyInvite.
+type DeleteLobbyInviteParams struct {
+	Id openapi_types.UUID `form:"id" json:"id"`
+}
+
+// GetLobbyInvitesParams defines parameters for GetLobbyInvites.
+type GetLobbyInvitesParams struct {
+	Page      int32 `form:"page" json:"page"`
+	PageSize  int32 `form:"pageSize" json:"pageSize"`
+	WithTotal bool  `form:"withTotal" json:"withTotal"`
+}
+
+// GetLobbyMembersParams defines parameters for GetLobbyMembers.
+type GetLobbyMembersParams struct {
+	LobbyId   openapi_types.UUID     `form:"lobbyId" json:"lobbyId"`
+	Page      int32                  `form:"page" json:"page"`
+	PageSize  int32                  `form:"pageSize" json:"pageSize"`
+	WithTotal bool                   `form:"withTotal" json:"withTotal"`
+	Search    *string                `form:"search,omitempty" json:"search,omitempty"`
+	Filter    *LobbyMemberFilterEnum `form:"filter,omitempty" json:"filter,omitempty"`
+}
+
 // GetRoleAssignmentsManagementViewParams defines parameters for GetRoleAssignmentsManagementView.
 type GetRoleAssignmentsManagementViewParams struct {
 	Page     int32               `form:"page" json:"page"`
@@ -1788,11 +2019,32 @@ type CreateVersionJSONRequestBody = CreateVersionRequest
 // GetGameVersionUploadUrlsJSONRequestBody defines body for GetGameVersionUploadUrls for application/json ContentType.
 type GetGameVersionUploadUrlsJSONRequestBody = GetGameVersionUploadUrlsRequest
 
-// CreateGameInstanceJSONRequestBody defines body for CreateGameInstance for application/json ContentType.
-type CreateGameInstanceJSONRequestBody = CreateGameInstanceRequest
-
 // EmitSignalingEventJSONRequestBody defines body for EmitSignalingEvent for application/json ContentType.
 type EmitSignalingEventJSONRequestBody = SignalingEventDTO
+
+// UpdateLobbyJSONRequestBody defines body for UpdateLobby for application/json ContentType.
+type UpdateLobbyJSONRequestBody = UpdateLobbyRequest
+
+// CreateLobbyJSONRequestBody defines body for CreateLobby for application/json ContentType.
+type CreateLobbyJSONRequestBody = CreateLobbyRequest
+
+// CreateLobbyInviteJSONRequestBody defines body for CreateLobbyInvite for application/json ContentType.
+type CreateLobbyInviteJSONRequestBody = CreateLobbyInviteRequest
+
+// JoinLobbyJSONRequestBody defines body for JoinLobby for application/json ContentType.
+type JoinLobbyJSONRequestBody = JoinLobbyRequest
+
+// LeaveLobbyJSONRequestBody defines body for LeaveLobby for application/json ContentType.
+type LeaveLobbyJSONRequestBody = LeaveLobbyRequest
+
+// PromoteLobbyLeaderJSONRequestBody defines body for PromoteLobbyLeader for application/json ContentType.
+type PromoteLobbyLeaderJSONRequestBody = PromoteLobbyLeaderRequest
+
+// RestartLobbyJSONRequestBody defines body for RestartLobby for application/json ContentType.
+type RestartLobbyJSONRequestBody = RestartLobbyRequest
+
+// StartLobbyJSONRequestBody defines body for StartLobby for application/json ContentType.
+type StartLobbyJSONRequestBody = StartLobbyRequest
 
 // UpdateUserJSONRequestBody defines body for UpdateUser for application/json ContentType.
 type UpdateUserJSONRequestBody = UpdateUserRequest
@@ -1968,11 +2220,6 @@ type ClientInterface interface {
 	// DeleteGameInstance request
 	DeleteGameInstance(ctx context.Context, params *DeleteGameInstanceParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// CreateGameInstanceWithBody request with any body
-	CreateGameInstanceWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	CreateGameInstance(ctx context.Context, body CreateGameInstanceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// PostGameAlive request
 	PostGameAlive(ctx context.Context, params *PostGameAliveParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -1980,6 +2227,61 @@ type ClientInterface interface {
 	EmitSignalingEventWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	EmitSignalingEvent(ctx context.Context, body EmitSignalingEventJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteLobby request
+	DeleteLobby(ctx context.Context, params *DeleteLobbyParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetLobby request
+	GetLobby(ctx context.Context, params *GetLobbyParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdateLobbyWithBody request with any body
+	UpdateLobbyWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateLobby(ctx context.Context, body UpdateLobbyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreateLobbyWithBody request with any body
+	CreateLobbyWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateLobby(ctx context.Context, body CreateLobbyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteLobbyInvite request
+	DeleteLobbyInvite(ctx context.Context, params *DeleteLobbyInviteParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetLobbyInvites request
+	GetLobbyInvites(ctx context.Context, params *GetLobbyInvitesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreateLobbyInviteWithBody request with any body
+	CreateLobbyInviteWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateLobbyInvite(ctx context.Context, body CreateLobbyInviteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// JoinLobbyWithBody request with any body
+	JoinLobbyWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	JoinLobby(ctx context.Context, body JoinLobbyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// LeaveLobbyWithBody request with any body
+	LeaveLobbyWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	LeaveLobby(ctx context.Context, body LeaveLobbyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetLobbyMembers request
+	GetLobbyMembers(ctx context.Context, params *GetLobbyMembersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PromoteLobbyLeaderWithBody request with any body
+	PromoteLobbyLeaderWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PromoteLobbyLeader(ctx context.Context, body PromoteLobbyLeaderJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RestartLobbyWithBody request with any body
+	RestartLobbyWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	RestartLobby(ctx context.Context, body RestartLobbyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// StartLobbyWithBody request with any body
+	StartLobbyWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	StartLobby(ctx context.Context, body StartLobbyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetRoleAssignmentsManagementView request
 	GetRoleAssignmentsManagementView(ctx context.Context, params *GetRoleAssignmentsManagementViewParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -2419,30 +2721,6 @@ func (c *Client) DeleteGameInstance(ctx context.Context, params *DeleteGameInsta
 	return c.Client.Do(req)
 }
 
-func (c *Client) CreateGameInstanceWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCreateGameInstanceRequestWithBody(c.Server, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) CreateGameInstance(ctx context.Context, body CreateGameInstanceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCreateGameInstanceRequest(c.Server, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
 func (c *Client) PostGameAlive(ctx context.Context, params *PostGameAliveParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewPostGameAliveRequest(c.Server, params)
 	if err != nil {
@@ -2469,6 +2747,258 @@ func (c *Client) EmitSignalingEventWithBody(ctx context.Context, contentType str
 
 func (c *Client) EmitSignalingEvent(ctx context.Context, body EmitSignalingEventJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewEmitSignalingEventRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteLobby(ctx context.Context, params *DeleteLobbyParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteLobbyRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetLobby(ctx context.Context, params *GetLobbyParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetLobbyRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateLobbyWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateLobbyRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateLobby(ctx context.Context, body UpdateLobbyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateLobbyRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateLobbyWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateLobbyRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateLobby(ctx context.Context, body CreateLobbyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateLobbyRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteLobbyInvite(ctx context.Context, params *DeleteLobbyInviteParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteLobbyInviteRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetLobbyInvites(ctx context.Context, params *GetLobbyInvitesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetLobbyInvitesRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateLobbyInviteWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateLobbyInviteRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateLobbyInvite(ctx context.Context, body CreateLobbyInviteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateLobbyInviteRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) JoinLobbyWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewJoinLobbyRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) JoinLobby(ctx context.Context, body JoinLobbyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewJoinLobbyRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) LeaveLobbyWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewLeaveLobbyRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) LeaveLobby(ctx context.Context, body LeaveLobbyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewLeaveLobbyRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetLobbyMembers(ctx context.Context, params *GetLobbyMembersParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetLobbyMembersRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PromoteLobbyLeaderWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPromoteLobbyLeaderRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PromoteLobbyLeader(ctx context.Context, body PromoteLobbyLeaderJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPromoteLobbyLeaderRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RestartLobbyWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRestartLobbyRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RestartLobby(ctx context.Context, body RestartLobbyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRestartLobbyRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) StartLobbyWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewStartLobbyRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) StartLobby(ctx context.Context, body StartLobbyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewStartLobbyRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -3854,46 +4384,6 @@ func NewDeleteGameInstanceRequest(server string, params *DeleteGameInstanceParam
 	return req, nil
 }
 
-// NewCreateGameInstanceRequest calls the generic CreateGameInstance builder with application/json body
-func NewCreateGameInstanceRequest(server string, body CreateGameInstanceJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewCreateGameInstanceRequestWithBody(server, "application/json", bodyReader)
-}
-
-// NewCreateGameInstanceRequestWithBody generates requests for CreateGameInstance with any type of body
-func NewCreateGameInstanceRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/instance")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
 // NewPostGameAliveRequest generates requests for PostGameAlive
 func NewPostGameAliveRequest(server string, params *PostGameAliveParams) (*http.Request, error) {
 	var err error
@@ -3931,7 +4421,7 @@ func NewPostGameAliveRequest(server string, params *PostGameAliveParams) (*http.
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -3970,6 +4460,643 @@ func NewEmitSignalingEventRequestWithBody(server string, contentType string, bod
 	}
 
 	req, err := http.NewRequest("PUT", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteLobbyRequest generates requests for DeleteLobby
+func NewDeleteLobbyRequest(server string, params *DeleteLobbyParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/lobby")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "lobbyId", params.LobbyId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: "uuid"}); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetLobbyRequest generates requests for GetLobby
+func NewGetLobbyRequest(server string, params *GetLobbyParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/lobby")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "lobbyId", params.LobbyId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: "uuid"}); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUpdateLobbyRequest calls the generic UpdateLobby builder with application/json body
+func NewUpdateLobbyRequest(server string, body UpdateLobbyJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateLobbyRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewUpdateLobbyRequestWithBody generates requests for UpdateLobby with any type of body
+func NewUpdateLobbyRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/lobby")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("PATCH", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewCreateLobbyRequest calls the generic CreateLobby builder with application/json body
+func NewCreateLobbyRequest(server string, body CreateLobbyJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateLobbyRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewCreateLobbyRequestWithBody generates requests for CreateLobby with any type of body
+func NewCreateLobbyRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/lobby")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteLobbyInviteRequest generates requests for DeleteLobbyInvite
+func NewDeleteLobbyInviteRequest(server string, params *DeleteLobbyInviteParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/lobby/invite")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "id", params.Id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: "uuid"}); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetLobbyInvitesRequest generates requests for GetLobbyInvites
+func NewGetLobbyInvitesRequest(server string, params *GetLobbyInvitesParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/lobby/invite")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "page", params.Page, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "integer", Format: "int32"}); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "pageSize", params.PageSize, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "integer", Format: "int32"}); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "withTotal", params.WithTotal, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "boolean", Format: ""}); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewCreateLobbyInviteRequest calls the generic CreateLobbyInvite builder with application/json body
+func NewCreateLobbyInviteRequest(server string, body CreateLobbyInviteJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateLobbyInviteRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewCreateLobbyInviteRequestWithBody generates requests for CreateLobbyInvite with any type of body
+func NewCreateLobbyInviteRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/lobby/invite")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewJoinLobbyRequest calls the generic JoinLobby builder with application/json body
+func NewJoinLobbyRequest(server string, body JoinLobbyJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewJoinLobbyRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewJoinLobbyRequestWithBody generates requests for JoinLobby with any type of body
+func NewJoinLobbyRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/lobby/join")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewLeaveLobbyRequest calls the generic LeaveLobby builder with application/json body
+func NewLeaveLobbyRequest(server string, body LeaveLobbyJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewLeaveLobbyRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewLeaveLobbyRequestWithBody generates requests for LeaveLobby with any type of body
+func NewLeaveLobbyRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/lobby/leave")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetLobbyMembersRequest generates requests for GetLobbyMembers
+func NewGetLobbyMembersRequest(server string, params *GetLobbyMembersParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/lobby/member")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "lobbyId", params.LobbyId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: "uuid"}); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "page", params.Page, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "integer", Format: "int32"}); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "pageSize", params.PageSize, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "integer", Format: "int32"}); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "withTotal", params.WithTotal, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "boolean", Format: ""}); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if params.Search != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "search", *params.Search, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Filter != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "filter", *params.Filter, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewPromoteLobbyLeaderRequest calls the generic PromoteLobbyLeader builder with application/json body
+func NewPromoteLobbyLeaderRequest(server string, body PromoteLobbyLeaderJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPromoteLobbyLeaderRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewPromoteLobbyLeaderRequestWithBody generates requests for PromoteLobbyLeader with any type of body
+func NewPromoteLobbyLeaderRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/lobby/promote")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewRestartLobbyRequest calls the generic RestartLobby builder with application/json body
+func NewRestartLobbyRequest(server string, body RestartLobbyJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewRestartLobbyRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewRestartLobbyRequestWithBody generates requests for RestartLobby with any type of body
+func NewRestartLobbyRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/lobby/restart")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewStartLobbyRequest calls the generic StartLobby builder with application/json body
+func NewStartLobbyRequest(server string, body StartLobbyJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewStartLobbyRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewStartLobbyRequestWithBody generates requests for StartLobby with any type of body
+func NewStartLobbyRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/lobby/start")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -4768,11 +5895,6 @@ type ClientWithResponsesInterface interface {
 	// DeleteGameInstanceWithResponse request
 	DeleteGameInstanceWithResponse(ctx context.Context, params *DeleteGameInstanceParams, reqEditors ...RequestEditorFn) (*DeleteGameInstanceHttpResponse, error)
 
-	// CreateGameInstanceWithBodyWithResponse request with any body
-	CreateGameInstanceWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateGameInstanceHttpResponse, error)
-
-	CreateGameInstanceWithResponse(ctx context.Context, body CreateGameInstanceJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateGameInstanceHttpResponse, error)
-
 	// PostGameAliveWithResponse request
 	PostGameAliveWithResponse(ctx context.Context, params *PostGameAliveParams, reqEditors ...RequestEditorFn) (*PostGameAliveHttpResponse, error)
 
@@ -4780,6 +5902,61 @@ type ClientWithResponsesInterface interface {
 	EmitSignalingEventWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EmitSignalingEventHttpResponse, error)
 
 	EmitSignalingEventWithResponse(ctx context.Context, body EmitSignalingEventJSONRequestBody, reqEditors ...RequestEditorFn) (*EmitSignalingEventHttpResponse, error)
+
+	// DeleteLobbyWithResponse request
+	DeleteLobbyWithResponse(ctx context.Context, params *DeleteLobbyParams, reqEditors ...RequestEditorFn) (*DeleteLobbyHttpResponse, error)
+
+	// GetLobbyWithResponse request
+	GetLobbyWithResponse(ctx context.Context, params *GetLobbyParams, reqEditors ...RequestEditorFn) (*GetLobbyHttpResponse, error)
+
+	// UpdateLobbyWithBodyWithResponse request with any body
+	UpdateLobbyWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateLobbyHttpResponse, error)
+
+	UpdateLobbyWithResponse(ctx context.Context, body UpdateLobbyJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateLobbyHttpResponse, error)
+
+	// CreateLobbyWithBodyWithResponse request with any body
+	CreateLobbyWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateLobbyHttpResponse, error)
+
+	CreateLobbyWithResponse(ctx context.Context, body CreateLobbyJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateLobbyHttpResponse, error)
+
+	// DeleteLobbyInviteWithResponse request
+	DeleteLobbyInviteWithResponse(ctx context.Context, params *DeleteLobbyInviteParams, reqEditors ...RequestEditorFn) (*DeleteLobbyInviteHttpResponse, error)
+
+	// GetLobbyInvitesWithResponse request
+	GetLobbyInvitesWithResponse(ctx context.Context, params *GetLobbyInvitesParams, reqEditors ...RequestEditorFn) (*GetLobbyInvitesHttpResponse, error)
+
+	// CreateLobbyInviteWithBodyWithResponse request with any body
+	CreateLobbyInviteWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateLobbyInviteHttpResponse, error)
+
+	CreateLobbyInviteWithResponse(ctx context.Context, body CreateLobbyInviteJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateLobbyInviteHttpResponse, error)
+
+	// JoinLobbyWithBodyWithResponse request with any body
+	JoinLobbyWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*JoinLobbyHttpResponse, error)
+
+	JoinLobbyWithResponse(ctx context.Context, body JoinLobbyJSONRequestBody, reqEditors ...RequestEditorFn) (*JoinLobbyHttpResponse, error)
+
+	// LeaveLobbyWithBodyWithResponse request with any body
+	LeaveLobbyWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*LeaveLobbyHttpResponse, error)
+
+	LeaveLobbyWithResponse(ctx context.Context, body LeaveLobbyJSONRequestBody, reqEditors ...RequestEditorFn) (*LeaveLobbyHttpResponse, error)
+
+	// GetLobbyMembersWithResponse request
+	GetLobbyMembersWithResponse(ctx context.Context, params *GetLobbyMembersParams, reqEditors ...RequestEditorFn) (*GetLobbyMembersHttpResponse, error)
+
+	// PromoteLobbyLeaderWithBodyWithResponse request with any body
+	PromoteLobbyLeaderWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PromoteLobbyLeaderHttpResponse, error)
+
+	PromoteLobbyLeaderWithResponse(ctx context.Context, body PromoteLobbyLeaderJSONRequestBody, reqEditors ...RequestEditorFn) (*PromoteLobbyLeaderHttpResponse, error)
+
+	// RestartLobbyWithBodyWithResponse request with any body
+	RestartLobbyWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RestartLobbyHttpResponse, error)
+
+	RestartLobbyWithResponse(ctx context.Context, body RestartLobbyJSONRequestBody, reqEditors ...RequestEditorFn) (*RestartLobbyHttpResponse, error)
+
+	// StartLobbyWithBodyWithResponse request with any body
+	StartLobbyWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*StartLobbyHttpResponse, error)
+
+	StartLobbyWithResponse(ctx context.Context, body StartLobbyJSONRequestBody, reqEditors ...RequestEditorFn) (*StartLobbyHttpResponse, error)
 
 	// GetRoleAssignmentsManagementViewWithResponse request
 	GetRoleAssignmentsManagementViewWithResponse(ctx context.Context, params *GetRoleAssignmentsManagementViewParams, reqEditors ...RequestEditorFn) (*GetRoleAssignmentsManagementViewHttpResponse, error)
@@ -5324,28 +6501,6 @@ func (r DeleteGameInstanceHttpResponse) StatusCode() int {
 	return 0
 }
 
-type CreateGameInstanceHttpResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *GameInstanceResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r CreateGameInstanceHttpResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r CreateGameInstanceHttpResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type PostGameAliveHttpResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -5382,6 +6537,289 @@ func (r EmitSignalingEventHttpResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r EmitSignalingEventHttpResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteLobbyHttpResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteLobbyHttpResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteLobbyHttpResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetLobbyHttpResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *LobbyStateResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetLobbyHttpResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetLobbyHttpResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdateLobbyHttpResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *LobbyResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateLobbyHttpResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateLobbyHttpResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CreateLobbyHttpResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *LobbyResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateLobbyHttpResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateLobbyHttpResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteLobbyInviteHttpResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteLobbyInviteHttpResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteLobbyInviteHttpResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetLobbyInvitesHttpResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *GetLobbyInvitesResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetLobbyInvitesHttpResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetLobbyInvitesHttpResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CreateLobbyInviteHttpResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *LobbyInviteResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateLobbyInviteHttpResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateLobbyInviteHttpResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type JoinLobbyHttpResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *LobbyStateResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r JoinLobbyHttpResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r JoinLobbyHttpResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type LeaveLobbyHttpResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r LeaveLobbyHttpResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r LeaveLobbyHttpResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetLobbyMembersHttpResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *LobbyMembersResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetLobbyMembersHttpResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetLobbyMembersHttpResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type PromoteLobbyLeaderHttpResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *LobbyResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r PromoteLobbyLeaderHttpResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PromoteLobbyLeaderHttpResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RestartLobbyHttpResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *LobbyStateResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r RestartLobbyHttpResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RestartLobbyHttpResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type StartLobbyHttpResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *LobbyInstanceResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r StartLobbyHttpResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r StartLobbyHttpResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -5914,23 +7352,6 @@ func (c *ClientWithResponses) DeleteGameInstanceWithResponse(ctx context.Context
 	return ParseDeleteGameInstanceHttpResponse(rsp)
 }
 
-// CreateGameInstanceWithBodyWithResponse request with arbitrary body returning *CreateGameInstanceHttpResponse
-func (c *ClientWithResponses) CreateGameInstanceWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateGameInstanceHttpResponse, error) {
-	rsp, err := c.CreateGameInstanceWithBody(ctx, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseCreateGameInstanceHttpResponse(rsp)
-}
-
-func (c *ClientWithResponses) CreateGameInstanceWithResponse(ctx context.Context, body CreateGameInstanceJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateGameInstanceHttpResponse, error) {
-	rsp, err := c.CreateGameInstance(ctx, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseCreateGameInstanceHttpResponse(rsp)
-}
-
 // PostGameAliveWithResponse request returning *PostGameAliveHttpResponse
 func (c *ClientWithResponses) PostGameAliveWithResponse(ctx context.Context, params *PostGameAliveParams, reqEditors ...RequestEditorFn) (*PostGameAliveHttpResponse, error) {
 	rsp, err := c.PostGameAlive(ctx, params, reqEditors...)
@@ -5955,6 +7376,187 @@ func (c *ClientWithResponses) EmitSignalingEventWithResponse(ctx context.Context
 		return nil, err
 	}
 	return ParseEmitSignalingEventHttpResponse(rsp)
+}
+
+// DeleteLobbyWithResponse request returning *DeleteLobbyHttpResponse
+func (c *ClientWithResponses) DeleteLobbyWithResponse(ctx context.Context, params *DeleteLobbyParams, reqEditors ...RequestEditorFn) (*DeleteLobbyHttpResponse, error) {
+	rsp, err := c.DeleteLobby(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteLobbyHttpResponse(rsp)
+}
+
+// GetLobbyWithResponse request returning *GetLobbyHttpResponse
+func (c *ClientWithResponses) GetLobbyWithResponse(ctx context.Context, params *GetLobbyParams, reqEditors ...RequestEditorFn) (*GetLobbyHttpResponse, error) {
+	rsp, err := c.GetLobby(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetLobbyHttpResponse(rsp)
+}
+
+// UpdateLobbyWithBodyWithResponse request with arbitrary body returning *UpdateLobbyHttpResponse
+func (c *ClientWithResponses) UpdateLobbyWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateLobbyHttpResponse, error) {
+	rsp, err := c.UpdateLobbyWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateLobbyHttpResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateLobbyWithResponse(ctx context.Context, body UpdateLobbyJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateLobbyHttpResponse, error) {
+	rsp, err := c.UpdateLobby(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateLobbyHttpResponse(rsp)
+}
+
+// CreateLobbyWithBodyWithResponse request with arbitrary body returning *CreateLobbyHttpResponse
+func (c *ClientWithResponses) CreateLobbyWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateLobbyHttpResponse, error) {
+	rsp, err := c.CreateLobbyWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateLobbyHttpResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateLobbyWithResponse(ctx context.Context, body CreateLobbyJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateLobbyHttpResponse, error) {
+	rsp, err := c.CreateLobby(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateLobbyHttpResponse(rsp)
+}
+
+// DeleteLobbyInviteWithResponse request returning *DeleteLobbyInviteHttpResponse
+func (c *ClientWithResponses) DeleteLobbyInviteWithResponse(ctx context.Context, params *DeleteLobbyInviteParams, reqEditors ...RequestEditorFn) (*DeleteLobbyInviteHttpResponse, error) {
+	rsp, err := c.DeleteLobbyInvite(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteLobbyInviteHttpResponse(rsp)
+}
+
+// GetLobbyInvitesWithResponse request returning *GetLobbyInvitesHttpResponse
+func (c *ClientWithResponses) GetLobbyInvitesWithResponse(ctx context.Context, params *GetLobbyInvitesParams, reqEditors ...RequestEditorFn) (*GetLobbyInvitesHttpResponse, error) {
+	rsp, err := c.GetLobbyInvites(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetLobbyInvitesHttpResponse(rsp)
+}
+
+// CreateLobbyInviteWithBodyWithResponse request with arbitrary body returning *CreateLobbyInviteHttpResponse
+func (c *ClientWithResponses) CreateLobbyInviteWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateLobbyInviteHttpResponse, error) {
+	rsp, err := c.CreateLobbyInviteWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateLobbyInviteHttpResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateLobbyInviteWithResponse(ctx context.Context, body CreateLobbyInviteJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateLobbyInviteHttpResponse, error) {
+	rsp, err := c.CreateLobbyInvite(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateLobbyInviteHttpResponse(rsp)
+}
+
+// JoinLobbyWithBodyWithResponse request with arbitrary body returning *JoinLobbyHttpResponse
+func (c *ClientWithResponses) JoinLobbyWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*JoinLobbyHttpResponse, error) {
+	rsp, err := c.JoinLobbyWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseJoinLobbyHttpResponse(rsp)
+}
+
+func (c *ClientWithResponses) JoinLobbyWithResponse(ctx context.Context, body JoinLobbyJSONRequestBody, reqEditors ...RequestEditorFn) (*JoinLobbyHttpResponse, error) {
+	rsp, err := c.JoinLobby(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseJoinLobbyHttpResponse(rsp)
+}
+
+// LeaveLobbyWithBodyWithResponse request with arbitrary body returning *LeaveLobbyHttpResponse
+func (c *ClientWithResponses) LeaveLobbyWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*LeaveLobbyHttpResponse, error) {
+	rsp, err := c.LeaveLobbyWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseLeaveLobbyHttpResponse(rsp)
+}
+
+func (c *ClientWithResponses) LeaveLobbyWithResponse(ctx context.Context, body LeaveLobbyJSONRequestBody, reqEditors ...RequestEditorFn) (*LeaveLobbyHttpResponse, error) {
+	rsp, err := c.LeaveLobby(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseLeaveLobbyHttpResponse(rsp)
+}
+
+// GetLobbyMembersWithResponse request returning *GetLobbyMembersHttpResponse
+func (c *ClientWithResponses) GetLobbyMembersWithResponse(ctx context.Context, params *GetLobbyMembersParams, reqEditors ...RequestEditorFn) (*GetLobbyMembersHttpResponse, error) {
+	rsp, err := c.GetLobbyMembers(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetLobbyMembersHttpResponse(rsp)
+}
+
+// PromoteLobbyLeaderWithBodyWithResponse request with arbitrary body returning *PromoteLobbyLeaderHttpResponse
+func (c *ClientWithResponses) PromoteLobbyLeaderWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PromoteLobbyLeaderHttpResponse, error) {
+	rsp, err := c.PromoteLobbyLeaderWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePromoteLobbyLeaderHttpResponse(rsp)
+}
+
+func (c *ClientWithResponses) PromoteLobbyLeaderWithResponse(ctx context.Context, body PromoteLobbyLeaderJSONRequestBody, reqEditors ...RequestEditorFn) (*PromoteLobbyLeaderHttpResponse, error) {
+	rsp, err := c.PromoteLobbyLeader(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePromoteLobbyLeaderHttpResponse(rsp)
+}
+
+// RestartLobbyWithBodyWithResponse request with arbitrary body returning *RestartLobbyHttpResponse
+func (c *ClientWithResponses) RestartLobbyWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RestartLobbyHttpResponse, error) {
+	rsp, err := c.RestartLobbyWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRestartLobbyHttpResponse(rsp)
+}
+
+func (c *ClientWithResponses) RestartLobbyWithResponse(ctx context.Context, body RestartLobbyJSONRequestBody, reqEditors ...RequestEditorFn) (*RestartLobbyHttpResponse, error) {
+	rsp, err := c.RestartLobby(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRestartLobbyHttpResponse(rsp)
+}
+
+// StartLobbyWithBodyWithResponse request with arbitrary body returning *StartLobbyHttpResponse
+func (c *ClientWithResponses) StartLobbyWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*StartLobbyHttpResponse, error) {
+	rsp, err := c.StartLobbyWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseStartLobbyHttpResponse(rsp)
+}
+
+func (c *ClientWithResponses) StartLobbyWithResponse(ctx context.Context, body StartLobbyJSONRequestBody, reqEditors ...RequestEditorFn) (*StartLobbyHttpResponse, error) {
+	rsp, err := c.StartLobby(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseStartLobbyHttpResponse(rsp)
 }
 
 // GetRoleAssignmentsManagementViewWithResponse request returning *GetRoleAssignmentsManagementViewHttpResponse
@@ -6636,32 +8238,6 @@ func ParseDeleteGameInstanceHttpResponse(rsp *http.Response) (*DeleteGameInstanc
 	return response, nil
 }
 
-// ParseCreateGameInstanceHttpResponse parses an HTTP response from a CreateGameInstanceWithResponse call
-func ParseCreateGameInstanceHttpResponse(rsp *http.Response) (*CreateGameInstanceHttpResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &CreateGameInstanceHttpResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest GameInstanceResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
 // ParsePostGameAliveHttpResponse parses an HTTP response from a PostGameAliveWithResponse call
 func ParsePostGameAliveHttpResponse(rsp *http.Response) (*PostGameAliveHttpResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -6689,6 +8265,314 @@ func ParseEmitSignalingEventHttpResponse(rsp *http.Response) (*EmitSignalingEven
 	response := &EmitSignalingEventHttpResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseDeleteLobbyHttpResponse parses an HTTP response from a DeleteLobbyWithResponse call
+func ParseDeleteLobbyHttpResponse(rsp *http.Response) (*DeleteLobbyHttpResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteLobbyHttpResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetLobbyHttpResponse parses an HTTP response from a GetLobbyWithResponse call
+func ParseGetLobbyHttpResponse(rsp *http.Response) (*GetLobbyHttpResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetLobbyHttpResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest LobbyStateResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUpdateLobbyHttpResponse parses an HTTP response from a UpdateLobbyWithResponse call
+func ParseUpdateLobbyHttpResponse(rsp *http.Response) (*UpdateLobbyHttpResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateLobbyHttpResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest LobbyResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCreateLobbyHttpResponse parses an HTTP response from a CreateLobbyWithResponse call
+func ParseCreateLobbyHttpResponse(rsp *http.Response) (*CreateLobbyHttpResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateLobbyHttpResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest LobbyResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseDeleteLobbyInviteHttpResponse parses an HTTP response from a DeleteLobbyInviteWithResponse call
+func ParseDeleteLobbyInviteHttpResponse(rsp *http.Response) (*DeleteLobbyInviteHttpResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteLobbyInviteHttpResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetLobbyInvitesHttpResponse parses an HTTP response from a GetLobbyInvitesWithResponse call
+func ParseGetLobbyInvitesHttpResponse(rsp *http.Response) (*GetLobbyInvitesHttpResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetLobbyInvitesHttpResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest GetLobbyInvitesResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCreateLobbyInviteHttpResponse parses an HTTP response from a CreateLobbyInviteWithResponse call
+func ParseCreateLobbyInviteHttpResponse(rsp *http.Response) (*CreateLobbyInviteHttpResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateLobbyInviteHttpResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest LobbyInviteResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseJoinLobbyHttpResponse parses an HTTP response from a JoinLobbyWithResponse call
+func ParseJoinLobbyHttpResponse(rsp *http.Response) (*JoinLobbyHttpResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &JoinLobbyHttpResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest LobbyStateResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseLeaveLobbyHttpResponse parses an HTTP response from a LeaveLobbyWithResponse call
+func ParseLeaveLobbyHttpResponse(rsp *http.Response) (*LeaveLobbyHttpResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &LeaveLobbyHttpResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetLobbyMembersHttpResponse parses an HTTP response from a GetLobbyMembersWithResponse call
+func ParseGetLobbyMembersHttpResponse(rsp *http.Response) (*GetLobbyMembersHttpResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetLobbyMembersHttpResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest LobbyMembersResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePromoteLobbyLeaderHttpResponse parses an HTTP response from a PromoteLobbyLeaderWithResponse call
+func ParsePromoteLobbyLeaderHttpResponse(rsp *http.Response) (*PromoteLobbyLeaderHttpResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PromoteLobbyLeaderHttpResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest LobbyResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseRestartLobbyHttpResponse parses an HTTP response from a RestartLobbyWithResponse call
+func ParseRestartLobbyHttpResponse(rsp *http.Response) (*RestartLobbyHttpResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RestartLobbyHttpResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest LobbyStateResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseStartLobbyHttpResponse parses an HTTP response from a StartLobbyWithResponse call
+func ParseStartLobbyHttpResponse(rsp *http.Response) (*StartLobbyHttpResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &StartLobbyHttpResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest LobbyInstanceResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil

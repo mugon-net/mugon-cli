@@ -3,6 +3,7 @@ package templates
 import (
 	"bytes"
 	"embed"
+	"encoding/json"
 	"fmt"
 	"io/fs"
 	"net/http"
@@ -27,7 +28,21 @@ func ParentframeFileSystem(projectConfig model.ProjectConfig, mainFramePort int,
 	if err != nil {
 		return nil, err
 	}
+	settings, err := model.GetSettingDTOs(projectConfig.Settings)
+	if err != nil {
+		return nil, err
+	}
+	settingsJson, err := json.Marshal(settings)
+	if err != nil {
+		return nil, err
+	}
+	settingsValidWhenJson, err := marshalJson(strings.TrimSpace(projectConfig.SettingsValidWhen))
+	if err != nil {
+		return nil, err
+	}
 	data := map[string]string{
+		"SettingsJson":           string(settingsJson),
+		"SettingsValidWhenJson":  settingsValidWhenJson,
 		"ProjectId":              projectConfig.Id,
 		"JsSdkVersion":           projectConfig.JsSdkVersion,
 		"DistributionDir":        projectConfig.DistributionDir,
@@ -194,4 +209,14 @@ func InstantiateProjectTemplate(
 
 		return nil
 	})
+}
+
+// marshalJson renders a value for injection into the dev parentframe's inline
+// script, where an empty expression must become `null` rather than `""`.
+func marshalJson(value string) (string, error) {
+	if value == "" {
+		return "null", nil
+	}
+	encoded, err := json.Marshal(value)
+	return string(encoded), err
 }

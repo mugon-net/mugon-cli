@@ -45,6 +45,11 @@ func channelInit(index int) *webrtc.DataChannelInit {
 
 func dialRelay(t *testing.T, srvURL string, role string) *testClient {
 	t.Helper()
+	return dialRelayWithSettings(t, srvURL, role, nil)
+}
+
+func dialRelayWithSettings(t *testing.T, srvURL string, role string, settings json.RawMessage) *testClient {
+	t.Helper()
 
 	pc, err := webrtc.NewPeerConnection(webrtc.Configuration{})
 	if err != nil {
@@ -79,7 +84,7 @@ func dialRelay(t *testing.T, srvURL string, role string) *testClient {
 	}
 	<-gatherComplete
 
-	reqBody, _ := json.Marshal(offerRequest{SDP: pc.LocalDescription().SDP, Role: role})
+	reqBody, _ := json.Marshal(offerRequest{SDP: pc.LocalDescription().SDP, Role: role, Settings: settings})
 	resp, err := http.Post(srvURL+"/offer", "application/json", bytes.NewReader(reqBody))
 	if err != nil {
 		t.Fatalf("POST /offer: %v", err)
@@ -186,6 +191,44 @@ func TestRelayEndToEnd(t *testing.T) {
 	}
 	if ft != frameDisconnected || id.String() != client.clientID {
 		t.Fatalf("expected disconnected frame for %s, got type=%d id=%s", client.clientID, ft, id)
+	}
+}
+
+func TestSettingsEndpointServesTheServersSettings(t *testing.T) {
+	r := New()
+	srv := httptest.NewServer(r.Handler())
+	defer srv.Close()
+
+	resp, err := http.Get(srv.URL + "/settings")
+	if err != nil {
+		t.Fatalf("GET /settings: %v", err)
+	}
+	_ = resp.Body.Close()
+	if resp.StatusCode != http.StatusNotFound {
+		t.Fatalf("GET /settings without a server: status %d, want 404", resp.StatusCode)
+	}
+
+	hostSettings := `{"map":"simple","countdown-seconds":6}`
+	dialRelayWithSettings(t, srv.URL, "server", json.RawMessage(hostSettings))
+	// A client's own settings are never stored.
+	dialRelayWithSettings(t, srv.URL, "client", json.RawMessage(`{"map":"circuit"}`))
+
+	resp, err = http.Get(srv.URL + "/settings")
+	if err != nil {
+		t.Fatalf("GET /settings: %v", err)
+	}
+	defer resp.Body.Close() // nolint:errcheck
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("GET /settings: status %d, want 200", resp.StatusCode)
+	}
+	var body struct {
+		Settings json.RawMessage `json:"settings"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&body); err != nil {
+		t.Fatalf("decode settings: %v", err)
+	}
+	if string(body.Settings) != hostSettings {
+		t.Fatalf("settings = %s, want %s", body.Settings, hostSettings)
 	}
 }
 
