@@ -1667,7 +1667,10 @@ type UploadThumbnailRequest struct {
 // UploadUrlDTO defines model for UploadUrlDTO.
 type UploadUrlDTO struct {
 	FileId openapi_types.UUID `json:"fileId"`
-	Url    string             `json:"url"`
+
+	// Headers Headers the upload request must send unchanged, they are part of the URL's signature.
+	Headers map[string]string `json:"headers"`
+	Url     string            `json:"url"`
 }
 
 // UserDTO defines model for UserDTO.

@@ -143,6 +143,9 @@ func (api *Api) UploadVersionFile(ctx context.Context, filePath string, uploadUr
 		return fmt.Errorf("failed to create request: %w", err)
 	}
 	req.ContentLength = info.Size()
+	for name, value := range uploadUrlDTO.Headers {
+		req.Header.Set(name, value)
+	}
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
