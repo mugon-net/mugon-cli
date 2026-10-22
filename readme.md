@@ -142,6 +142,18 @@ The OS field is also matched automatically against the current platform (`linux`
 
 ---
 
+### `mugon editor`
+
+Runs the Mugon Editor: an alias for the `mugon-editor` binary, with all arguments passed through verbatim (`mugon editor` opens the scene editor, `mugon editor serve` is `mugon-editor serve`). The current directory is the game folder, so the editor picks up the `[editor]` table of your `mugon.toml`.
+
+```sh
+mugon editor [mugon-editor arguments...]
+```
+
+`mugon-editor` is looked up on `PATH`, then in `~/.mugon/editor` (where the editor's install script puts it). If it is not installed the command fails with a hint.
+
+---
+
 ## Project config — `mugon.toml`
 
 Every project has a `mugon.toml` in its root directory. This file is created by `mugon init` and read by `mugon publish`, `mugon dev`, and `mugon run`.
@@ -312,6 +324,26 @@ Two behaviours worth knowing up front:
 
 Expressions are validated when you publish, against the settings that same version declares, so a typo, an undeclared key, a non-boolean result, or a type mismatch fails `mugon publish` with an explanation rather than misbehaving at play time. `mugon dev` evaluates them straight from `mugon.toml`, reporting problems in the browser console instead.
 
+### `[editor]` table
+
+Read by the Mugon Editor (`mugon editor`), ignored by every other command. All paths are relative to the project folder (absolute paths also work).
+
+```toml
+[editor.scenes]
+json-path = "scenes"                  # where scenes (*.mugon-scene.json) are saved; default shown
+bsn-path = "src/scenes"               # where exported BSN (<scene>.rs) goes; default shown
+bsn-use = ["crate::components::*"]    # `use` lines in the exported BSN; default none
+
+[editor.assets]
+path = "assets"                       # "Export on save" copies the used assets here; default shown
+
+[[editor.component]]
+name = "Health"
+fields = [{ name = "max", type = "f32", default = 100.0 }]
+```
+
+`[[editor.component]]` defines the components that can be attached to entities in the editor. Field `type` is one of `bool`, `i32`, `f32`, `string`, `vec2`, `vec3`, `color`, `enum`, `asset`; `enum` fields take `options` and an optional `rust_type`.
+
 ### `[[command]]` entries
 
 Commands are matched by `name`, `scope`, and `os`. Multiple `[[command]]` entries can share the same `name` — they are selected based on the active scope and current OS.
@@ -344,6 +376,8 @@ mugon-net-api-url-override = "https://backend.stage.mugon.net/api/v1"
 |---|---|
 | `credentials` | Map of project IDs to API keys. Populated by `mugon login`, cleared by `mugon logout`. |
 | `mugon-net-api-url-override` | Overrides the default API base URL (`https://backend.mugon.net/api/v1`). |
+
+The `[editor]` table (`library = "<folder>"`) holds the asset library folder of the Mugon Editor and is preserved by `mugon login` / `mugon logout`.
 
 Credentials can also be supplied at runtime via the `MUGON_PROJECT_API_KEY` environment variable, which takes precedence over the stored value.
 

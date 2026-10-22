@@ -19,6 +19,9 @@ import (
 type GlobalConfig struct {
 	Credentials            map[string]string `toml:"credentials" validate:"dive"`
 	MugonNetApiUrlOverride string            `toml:"mugon-net-api-url-override"`
+
+	// Editor is owned by mugon-editor; kept so rewriting the file does not drop it.
+	Editor map[string]any `toml:"editor,omitempty"`
 }
 
 type ProjectConfig struct {

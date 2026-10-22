@@ -43,3 +43,11 @@ type NoProjectApiKeyFound struct {
 func (NoProjectApiKeyFound) Error() string {
 	return "No api key found for the current project. Use `mugon login` or set the `MUGON_PROJECT_API_KEY` environment variable to your api key."
 }
+
+type EditorNotFoundError struct {
+	InstallDir string
+}
+
+func (err EditorNotFoundError) Error() string {
+	return "The Mugon Editor is not installed (mugon-editor was not found on PATH or in " + err.InstallDir + "). Install it with the install script of the Mugon Editor release."
+}

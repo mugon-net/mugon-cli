@@ -80,6 +80,12 @@ func main() {
 				Action: command.ExecutePublishCommand,
 			},
 			{
+				Name:            "editor",
+				Usage:           "Runs the Mugon Editor (alias for mugon-editor; arguments are passed through)",
+				SkipFlagParsing: true,
+				Action:          command.ExecuteEditorCommand,
+			},
+			{
 				Name:   "run",
 				Usage:  "Runs commands configured in the project file",
 				Before: model.ReadProjectConfig,
