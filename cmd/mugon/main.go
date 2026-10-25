@@ -81,7 +81,7 @@ func main() {
 			},
 			{
 				Name:            "editor",
-				Usage:           "Runs the Mugon Editor (alias for mugon-editor; arguments are passed through)",
+				Usage:           "Runs the Mugon Editor (alias for mugon-editor; arguments are passed through). `install`, `update` and `uninstall` manage the installation",
 				SkipFlagParsing: true,
 				Action:          command.ExecuteEditorCommand,
 			},

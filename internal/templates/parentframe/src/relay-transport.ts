@@ -92,7 +92,7 @@ export class RelayTransport implements ParentframeTransport {
     // connected" frame sent to the client itself. Without this, a client-role
     // peer's `onPeerConnected` never fires for its own connection, so the game's
     // Mugon transport (which waits for an explicit "con" naming the server before
-    // considering itself linked -- see lightyear_mugon's client.rs) never leaves
+    // considering itself linked -- see mugon-sdk-lightyear's client.rs) never leaves
     // its "connecting" state. We already know the server's id from this same HTTP
     // response, so synthesize the notification here rather than changing the wire
     // protocol.

@@ -49,5 +49,5 @@ type EditorNotFoundError struct {
 }
 
 func (err EditorNotFoundError) Error() string {
-	return "The Mugon Editor is not installed (mugon-editor was not found on PATH or in " + err.InstallDir + "). Install it with the install script of the Mugon Editor release."
+	return "The Mugon Editor is not installed (mugon-editor was not found on PATH or in " + err.InstallDir + "). Install it with `mugon editor install`."
 }

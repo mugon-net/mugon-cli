@@ -6,15 +6,15 @@ The official command-line tool for publishing and developing games on [mugon.net
 
 **Shell (Mac, Linux):**
 ```sh
-curl -fsSL https://mugon.net/install.sh | sh
+curl -fsSL https://tools.mugon.net/cli/install.sh | sh
 ```
 
 **PowerShell (Windows):**
 ```powershell
-irm https://mugon.net/install.ps1 | iex
+irm https://tools.mugon.net/cli/install.ps1 | iex
 ```
 
-<span style="color:orange">IMPORTANT: For installing the staging cli version use https://stage.mugon.net instead</span>
+The staging platform uses the same CLI: install it as above and point it at the staging API (see `mugon-net-api-url-override` below).
 
 ## Commands
 
