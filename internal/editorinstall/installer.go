@@ -164,7 +164,7 @@ func (installer *Installer) Uninstall(version string, all bool) error {
 		return err
 	}
 	if _, err := os.Stat(installer.versionDir(version)); err != nil {
-		return fmt.Errorf("Mugon Editor %s is not installed", version)
+		return fmt.Errorf("mugon Editor %s is not installed", version)
 	}
 	if err := os.RemoveAll(installer.versionDir(version)); err != nil {
 		return err
