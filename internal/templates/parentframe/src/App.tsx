@@ -164,7 +164,11 @@ export function App({ config }: { config: MugonConfig }) {
       }
       const build = await readBuildInfo();
       const parentframe = new Parentframe({
-        transport: new RelayTransport(`${relayUrl}/offer`, hostSettings),
+        transport: new RelayTransport(
+          `${relayUrl}/offer`,
+          hostSettings,
+          new URLSearchParams(location.search).get("name") ?? undefined,
+        ),
         fetchVersionFile: createVersionFileFetcher({
           versionBaseUrl: gameUrl,
           cacheKeyBase: gameUrl,

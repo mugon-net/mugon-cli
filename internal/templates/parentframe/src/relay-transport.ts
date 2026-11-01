@@ -2,7 +2,6 @@ import { Channel } from "@mugon/sdk/protocol";
 import type { SettingValue } from "@mugon/sdk/settings";
 import type {
   NetworkRole,
-  Player,
   ParentframeTransport,
   TransportHandlers,
   TransportIdentity,
@@ -34,15 +33,22 @@ const CHANNEL_CONFIGS: { label: string; init: RTCDataChannelInit }[] = [
 export class RelayTransport implements ParentframeTransport {
   private readonly offerUrl: string;
   private readonly hostSettings: Record<string, SettingValue>;
+  private readonly name: string | undefined;
   private pc: RTCPeerConnection | undefined;
   private dataChannels: RTCDataChannel[] = [];
 
   // `hostSettings` are what this tab's settings panel holds. They are only
   // sent when this player connects as the server; the relay serves them to
   // clients, which fetch them with `fetchHostSettings` before they launch.
-  constructor(offerUrl: string, hostSettings: Record<string, SettingValue>) {
+  // `name` is this tab's display name; without one the relay numbers the tab.
+  constructor(
+    offerUrl: string,
+    hostSettings: Record<string, SettingValue>,
+    name?: string,
+  ) {
     this.offerUrl = offerUrl;
     this.hostSettings = hostSettings;
+    this.name = name;
   }
 
   async connect(
@@ -66,6 +72,7 @@ export class RelayTransport implements ParentframeTransport {
       body: JSON.stringify({
         sdp: pc.localDescription!.sdp,
         role,
+        name: this.name,
         settings: role === "server" ? this.hostSettings : undefined,
       }),
     });
@@ -75,7 +82,9 @@ export class RelayTransport implements ParentframeTransport {
     const body = (await res.json()) as {
       sdp: string;
       playerId: string;
+      name: string;
       serverPlayerId?: string;
+      serverName?: string;
     };
 
     await pc.setRemoteDescription({ type: "answer", sdp: body.sdp });
@@ -98,12 +107,17 @@ export class RelayTransport implements ParentframeTransport {
     // response, so synthesize the notification here rather than changing the wire
     // protocol.
     if (role === "client" && body.serverPlayerId) {
-      handlers.onPlayerConnected(toPlayer(body.serverPlayerId));
+      handlers.onPlayerConnected({
+        id: body.serverPlayerId,
+        name: body.serverName ?? body.serverPlayerId,
+      });
     }
 
     return {
-      self: toPlayer(body.playerId),
-      server: body.serverPlayerId ? toPlayer(body.serverPlayerId) : undefined,
+      self: { id: body.playerId, name: body.name },
+      server: body.serverPlayerId
+        ? { id: body.serverPlayerId, name: body.serverName ?? body.serverPlayerId }
+        : undefined,
     };
   }
 
@@ -136,17 +150,16 @@ export class RelayTransport implements ParentframeTransport {
         handlers.onData(id, channel, payload);
         break;
       case FRAME_TYPE_PLAYER_CONNECTED:
-        handlers.onPlayerConnected(toPlayer(id));
+        handlers.onPlayerConnected({
+          id,
+          name: new TextDecoder().decode(payload) || id,
+        });
         break;
       case FRAME_TYPE_PLAYER_DISCONNECTED:
         handlers.onPlayerDisconnected(id);
         break;
     }
   }
-}
-
-function toPlayer(id: string): Player {
-  return { id, name: id };
 }
 
 function waitForIceGatheringComplete(pc: RTCPeerConnection): Promise<void> {

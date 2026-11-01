@@ -31,13 +31,18 @@ const (
 	roleClient role = "client"
 )
 
+// maxNameLength is the longest display name the platform accepts.
+const maxNameLength = 32
+
+// A frame is [type][player id][payload]. The payload of a framePlayerConnected
+// is the new player's display name; for frameData it is the data.
 type frameType byte
 
 const (
-	frameData         frameType = 0x01
+	frameData               frameType = 0x01
 	framePlayerConnected    frameType = 0x02
 	framePlayerDisconnected frameType = 0x03
-	frameDisconnectPlayer         frameType = 0x04
+	frameDisconnectPlayer   frameType = 0x04
 )
 
 // channelLabels indexes the data channels by their delivery guarantee. The
@@ -90,6 +95,7 @@ type channel struct {
 
 type player struct {
 	id   uuid.UUID
+	name string
 	role role
 	pc   *webrtc.PeerConnection
 	// settings are the values the server player started the game with, which
@@ -133,7 +139,8 @@ func (p *player) send(index int, frame []byte) {
 // Relay is a WebRTC hub: every player connects directly to the relay (not to
 // each other) and addresses other players by the uuid the relay assigned them.
 type Relay struct {
-	mu         sync.Mutex
+	mu           sync.Mutex
+	joined       int
 	players      map[uuid.UUID]*player
 	serverPlayer *player
 }
@@ -165,14 +172,18 @@ func corsMiddleware(next http.Handler) http.Handler {
 type offerRequest struct {
 	SDP  string `json:"sdp"`
 	Role string `json:"role"`
+	// Name is the player's display name; empty gets a generated one.
+	Name string `json:"name,omitempty"`
 	// Settings are only read from a server; a client's are ignored.
 	Settings json.RawMessage `json:"settings,omitempty"`
 }
 
 type offerResponse struct {
-	SDP      string `json:"sdp"`
-	PlayerID string `json:"playerId"`
+	SDP            string `json:"sdp"`
+	PlayerID       string `json:"playerId"`
+	Name           string `json:"name"`
 	ServerPlayerID string `json:"serverPlayerId,omitempty"`
+	ServerName     string `json:"serverName,omitempty"`
 }
 
 type settingsResponse struct {
@@ -223,7 +234,7 @@ func (r *Relay) handleOffer(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	p := &player{id: uuid.New(), role: playerRole, pc: pc}
+	p := &player{id: uuid.New(), name: r.nameFor(body.Name), role: playerRole, pc: pc}
 	if playerRole == roleServer {
 		p.settings = body.Settings
 	}
@@ -276,6 +287,7 @@ func (r *Relay) handleOffer(w http.ResponseWriter, req *http.Request) {
 	resp := offerResponse{
 		SDP:      pc.LocalDescription().SDP,
 		PlayerID: p.id.String(),
+		Name:     p.name,
 	}
 
 	r.mu.Lock()
@@ -290,12 +302,13 @@ func (r *Relay) handleOffer(w http.ResponseWriter, req *http.Request) {
 	} else {
 		if r.serverPlayer != nil {
 			resp.ServerPlayerID = r.serverPlayer.id.String()
+			resp.ServerName = r.serverPlayer.name
 		}
 		r.mu.Unlock()
 	}
 
 	if playerRole == roleClient {
-		r.notifyServer(framePlayerConnected, p.id)
+		r.notifyServer(framePlayerConnected, p.id, []byte(p.name))
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -331,6 +344,21 @@ func mayAddress(sender, target *player) bool {
 	return target.role == roleServer
 }
 
+// nameFor trims a requested display name to the platform's limit and numbers
+// the players that did not bring one in the order they joined.
+func (r *Relay) nameFor(requested string) string {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.joined++
+	if requested == "" {
+		return fmt.Sprintf("Player %d", r.joined)
+	}
+	if runes := []rune(requested); len(runes) > maxNameLength {
+		return string(runes[:maxNameLength])
+	}
+	return requested
+}
+
 func (r *Relay) lookupPlayer(id uuid.UUID) (*player, bool) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -353,16 +381,16 @@ func (r *Relay) removePlayer(p *player) {
 	r.mu.Unlock()
 
 	if !wasServer {
-		r.notifyServer(framePlayerDisconnected, p.id)
+		r.notifyServer(framePlayerDisconnected, p.id, nil)
 	}
 }
 
-func (r *Relay) notifyServer(t frameType, playerID uuid.UUID) {
+func (r *Relay) notifyServer(t frameType, playerID uuid.UUID, payload []byte) {
 	r.mu.Lock()
 	server := r.serverPlayer
 	r.mu.Unlock()
 	if server == nil {
 		return
 	}
-	server.send(channelReliableOrdered, encodeFrame(t, playerID, nil))
+	server.send(channelReliableOrdered, encodeFrame(t, playerID, payload))
 }

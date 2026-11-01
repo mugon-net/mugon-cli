@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -18,8 +19,10 @@ type testClient struct {
 	channels [channelCount]*webrtc.DataChannel
 	messages [channelCount]chan []byte
 
-	playerID string
+	playerID       string
+	name           string
 	serverPlayerID string
+	serverName     string
 }
 
 func mustParseID(t *testing.T, s string) uuid.UUID {
@@ -49,6 +52,11 @@ func dialRelay(t *testing.T, srvURL string, role string) *testClient {
 }
 
 func dialRelayWithSettings(t *testing.T, srvURL string, role string, settings json.RawMessage) *testClient {
+	t.Helper()
+	return dialRelayAs(t, srvURL, role, "", settings)
+}
+
+func dialRelayAs(t *testing.T, srvURL string, role string, name string, settings json.RawMessage) *testClient {
 	t.Helper()
 
 	pc, err := webrtc.NewPeerConnection(webrtc.Configuration{})
@@ -84,7 +92,7 @@ func dialRelayWithSettings(t *testing.T, srvURL string, role string, settings js
 	}
 	<-gatherComplete
 
-	reqBody, _ := json.Marshal(offerRequest{SDP: pc.LocalDescription().SDP, Role: role, Settings: settings})
+	reqBody, _ := json.Marshal(offerRequest{SDP: pc.LocalDescription().SDP, Role: role, Name: name, Settings: settings})
 	resp, err := http.Post(srvURL+"/offer", "application/json", bytes.NewReader(reqBody))
 	if err != nil {
 		t.Fatalf("POST /offer: %v", err)
@@ -112,7 +120,9 @@ func dialRelayWithSettings(t *testing.T, srvURL string, role string, settings js
 	}
 
 	tc.playerID = body.PlayerID
+	tc.name = body.Name
 	tc.serverPlayerID = body.ServerPlayerID
+	tc.serverName = body.ServerName
 	return tc
 }
 
@@ -124,6 +134,40 @@ func (tc *testClient) recv(t *testing.T, index int, timeout time.Duration) []byt
 	case <-time.After(timeout):
 		t.Fatal("timed out waiting for message")
 		return nil
+	}
+}
+
+func TestRelayPlayerNames(t *testing.T) {
+	r := New()
+	srv := httptest.NewServer(r.Handler())
+	defer srv.Close()
+
+	server := dialRelayAs(t, srv.URL, "server", "Sam", nil)
+	if server.name != "Sam" {
+		t.Fatalf("server name = %q, want Sam", server.name)
+	}
+
+	named := dialRelayAs(t, srv.URL, "client", "Cleo", nil)
+	if named.name != "Cleo" || named.serverName != "Sam" {
+		t.Fatalf("named client got name %q and server name %q", named.name, named.serverName)
+	}
+	unnamed := dialRelay(t, srv.URL, "client")
+	if unnamed.name != "Player 3" {
+		t.Fatalf("unnamed client name = %q, want Player 3", unnamed.name)
+	}
+	long := dialRelayAs(t, srv.URL, "client", strings.Repeat("x", 40), nil)
+	if len([]rune(long.name)) != maxNameLength {
+		t.Fatalf("long name has %d characters, want %d", len([]rune(long.name)), maxNameLength)
+	}
+
+	for _, want := range []string{"Cleo", "Player 3", long.name} {
+		_, _, payload, err := decodeFrame(server.recv(t, channelReliableOrdered, 5*time.Second))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if string(payload) != want {
+			t.Fatalf("connected frame carries %q, want %q", payload, want)
+		}
 	}
 }
 
