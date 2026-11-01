@@ -1,24 +1,25 @@
 import { Channel } from "@mugon/sdk/protocol";
 import type { SettingValue } from "@mugon/sdk/settings";
 import type {
-  NetworkMode,
+  NetworkRole,
+  Player,
   ParentframeTransport,
   TransportHandlers,
   TransportIdentity,
 } from "@mugon/sdk/parentframe";
 
-// Relay wire protocol. A frame is [type:1][peerId:36][payload:...]; peerIds are
+// Relay wire protocol. A frame is [type:1][playerId:36][payload:...]; playerIds are
 // the relay-assigned uuids in canonical 36-character form. These values are
 // shared with the Go relay (internal/relay/relay.go) — keep them in sync.
 const FRAME_TYPE_DATA = 0x01;
-const FRAME_TYPE_CONNECTED = 0x02;
-const FRAME_TYPE_DISCONNECTED = 0x03;
-const FRAME_TYPE_DROP = 0x04;
+const FRAME_TYPE_PLAYER_CONNECTED = 0x02;
+const FRAME_TYPE_PLAYER_DISCONNECTED = 0x03;
+const FRAME_TYPE_DISCONNECT_PLAYER = 0x04;
 const UUID_LEN = 36;
 
 // One data channel per delivery guarantee. The array index is the Channel value
 // shared with the SDK and the relay; the label lets the relay pair each channel
-// with its counterpart on the other peer.
+// with its counterpart on the other player.
 const CHANNEL_CONFIGS: { label: string; init: RTCDataChannelInit }[] = [
   { label: "ro", init: { ordered: true } },
   { label: "ru", init: { ordered: false } },
@@ -37,7 +38,7 @@ export class RelayTransport implements ParentframeTransport {
   private dataChannels: RTCDataChannel[] = [];
 
   // `hostSettings` are what this tab's settings panel holds. They are only
-  // sent when this peer connects as the server; the relay serves them to
+  // sent when this player connects as the server; the relay serves them to
   // clients, which fetch them with `fetchHostSettings` before they launch.
   constructor(offerUrl: string, hostSettings: Record<string, SettingValue>) {
     this.offerUrl = offerUrl;
@@ -45,7 +46,7 @@ export class RelayTransport implements ParentframeTransport {
   }
 
   async connect(
-    mode: NetworkMode,
+    role: NetworkRole,
     handlers: TransportHandlers,
   ): Promise<TransportIdentity> {
     const pc = new RTCPeerConnection();
@@ -64,8 +65,8 @@ export class RelayTransport implements ParentframeTransport {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         sdp: pc.localDescription!.sdp,
-        role: mode,
-        settings: mode === "server" ? this.hostSettings : undefined,
+        role,
+        settings: role === "server" ? this.hostSettings : undefined,
       }),
     });
     if (!res.ok) {
@@ -73,8 +74,8 @@ export class RelayTransport implements ParentframeTransport {
     }
     const body = (await res.json()) as {
       sdp: string;
-      clientId: string;
-      serverId?: string;
+      playerId: string;
+      serverPlayerId?: string;
     };
 
     await pc.setRemoteDescription({ type: "answer", sdp: body.sdp });
@@ -90,29 +91,32 @@ export class RelayTransport implements ParentframeTransport {
     // The relay (relay.go) only ever notifies the *server* role when a client
     // connects (`notifyServer`) -- there is no corresponding "you are now
     // connected" frame sent to the client itself. Without this, a client-role
-    // peer's `onPeerConnected` never fires for its own connection, so the game's
-    // Mugon transport (which waits for an explicit "con" naming the server before
+    // player's `onPlayerConnected` never fires for its own connection, so the game's
+    // Mugon transport (which waits for an explicit "player-connected" naming the server before
     // considering itself linked -- see mugon-sdk-lightyear's client.rs) never leaves
     // its "connecting" state. We already know the server's id from this same HTTP
     // response, so synthesize the notification here rather than changing the wire
     // protocol.
-    if (mode === "client" && body.serverId) {
-      handlers.onPeerConnected(body.serverId);
+    if (role === "client" && body.serverPlayerId) {
+      handlers.onPlayerConnected(toPlayer(body.serverPlayerId));
     }
 
-    return { clientId: body.clientId, serverId: body.serverId };
+    return {
+      self: toPlayer(body.playerId),
+      server: body.serverPlayerId ? toPlayer(body.serverPlayerId) : undefined,
+    };
   }
 
-  send(peerId: string, channel: Channel, data: Uint8Array): void {
+  send(playerId: string, channel: Channel, data: Uint8Array): void {
     this.dataChannels[channel]?.send(
-      encodeFrame(FRAME_TYPE_DATA, peerId, data),
+      encodeFrame(FRAME_TYPE_DATA, playerId, data),
     );
   }
 
-  drop(peerId: string): void {
+  disconnectPlayer(playerId: string): void {
     // Control frames must arrive, so always use the reliable ordered channel.
     this.dataChannels[Channel.ReliableOrdered]?.send(
-      encodeFrame(FRAME_TYPE_DROP, peerId),
+      encodeFrame(FRAME_TYPE_DISCONNECT_PLAYER, playerId),
     );
   }
 
@@ -131,14 +135,18 @@ export class RelayTransport implements ParentframeTransport {
       case FRAME_TYPE_DATA:
         handlers.onData(id, channel, payload);
         break;
-      case FRAME_TYPE_CONNECTED:
-        handlers.onPeerConnected(id);
+      case FRAME_TYPE_PLAYER_CONNECTED:
+        handlers.onPlayerConnected(toPlayer(id));
         break;
-      case FRAME_TYPE_DISCONNECTED:
-        handlers.onPeerDisconnected(id);
+      case FRAME_TYPE_PLAYER_DISCONNECTED:
+        handlers.onPlayerDisconnected(id);
         break;
     }
   }
+}
+
+function toPlayer(id: string): Player {
+  return { id, name: id };
 }
 
 function waitForIceGatheringComplete(pc: RTCPeerConnection): Promise<void> {

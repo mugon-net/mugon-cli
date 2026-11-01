@@ -2,15 +2,15 @@
 //
 // The parentframe script connects to it directly over WebRTC (one connection
 // per browser tab/instance) instead of establishing real peer-to-peer
-// connections between browser tabs. Each connecting peer is assigned a uuid
-// and can address other connected peers by that uuid; the relay forwards
-// data frames between them. The "server" role peer additionally receives
-// connect/disconnect notifications for every other peer, mirroring the
+// connections between browser tabs. Each connecting player is assigned a uuid
+// and can address other connected players by that uuid; the relay forwards
+// data frames between them. The "server" role player additionally receives
+// connect/disconnect notifications for every other player, mirroring the
 // client-server topology used by mugon games.
 //
-// Every peer opens one data channel per delivery guarantee (reliable/unreliable
+// Every player opens one data channel per delivery guarantee (reliable/unreliable
 // x ordered/unordered). The relay pairs channels by index: a frame received on
-// a peer's channel i is forwarded on the target's channel i, so the chosen
+// a player's channel i is forwarded on the target's channel i, so the chosen
 // delivery guarantee is preserved across both hops.
 package relay
 
@@ -35,14 +35,14 @@ type frameType byte
 
 const (
 	frameData         frameType = 0x01
-	frameConnected    frameType = 0x02
-	frameDisconnected frameType = 0x03
-	frameDrop         frameType = 0x04
+	framePlayerConnected    frameType = 0x02
+	framePlayerDisconnected frameType = 0x03
+	frameDisconnectPlayer         frameType = 0x04
 )
 
 // channelLabels indexes the data channels by their delivery guarantee. The
 // index is the Channel value shared with the SDK and parentframe; the label
-// pairs a peer's channel with its counterpart on the other peer.
+// pairs a player's channel with its counterpart on the other player.
 var channelLabels = [...]string{"ro", "ru", "uo", "uu"}
 
 const channelCount = len(channelLabels)
@@ -77,7 +77,7 @@ func decodeFrame(data []byte) (frameType, uuid.UUID, []byte, error) {
 	}
 	id, err := uuid.Parse(string(data[1 : 1+uuidLen]))
 	if err != nil {
-		return 0, uuid.UUID{}, nil, fmt.Errorf("relay: invalid peer id in frame: %w", err)
+		return 0, uuid.UUID{}, nil, fmt.Errorf("relay: invalid player id in frame: %w", err)
 	}
 	return frameType(data[0]), id, data[1+uuidLen:], nil
 }
@@ -88,11 +88,11 @@ type channel struct {
 	pending [][]byte
 }
 
-type peer struct {
+type player struct {
 	id   uuid.UUID
 	role role
 	pc   *webrtc.PeerConnection
-	// settings are the values the server peer started the game with, which
+	// settings are the values the server player started the game with, which
 	// clients fetch from /settings before they launch.
 	settings json.RawMessage
 
@@ -100,13 +100,13 @@ type peer struct {
 	channels [channelCount]channel
 }
 
-func (p *peer) setDataChannel(index int, dc *webrtc.DataChannel) {
+func (p *player) setDataChannel(index int, dc *webrtc.DataChannel) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	p.channels[index].dc = dc
 }
 
-func (p *peer) markReady(index int) {
+func (p *player) markReady(index int) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	c := &p.channels[index]
@@ -119,7 +119,7 @@ func (p *peer) markReady(index int) {
 
 // send queues the frame until the channel opens if it is not ready yet, so
 // notifications emitted during connection setup are not lost.
-func (p *peer) send(index int, frame []byte) {
+func (p *player) send(index int, frame []byte) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	c := &p.channels[index]
@@ -130,16 +130,16 @@ func (p *peer) send(index int, frame []byte) {
 	_ = c.dc.Send(frame)
 }
 
-// Relay is a WebRTC hub: every peer connects directly to the relay (not to
-// each other) and addresses other peers by the uuid the relay assigned them.
+// Relay is a WebRTC hub: every player connects directly to the relay (not to
+// each other) and addresses other players by the uuid the relay assigned them.
 type Relay struct {
 	mu         sync.Mutex
-	peers      map[uuid.UUID]*peer
-	serverPeer *peer
+	players      map[uuid.UUID]*player
+	serverPlayer *player
 }
 
 func New() *Relay {
-	return &Relay{peers: make(map[uuid.UUID]*peer)}
+	return &Relay{players: make(map[uuid.UUID]*player)}
 }
 
 func (r *Relay) Handler() http.Handler {
@@ -171,8 +171,8 @@ type offerRequest struct {
 
 type offerResponse struct {
 	SDP      string `json:"sdp"`
-	ClientID string `json:"clientId"`
-	ServerID string `json:"serverId,omitempty"`
+	PlayerID string `json:"playerId"`
+	ServerPlayerID string `json:"serverPlayerId,omitempty"`
 }
 
 type settingsResponse struct {
@@ -188,7 +188,7 @@ func (r *Relay) handleSettings(w http.ResponseWriter, req *http.Request) {
 	}
 
 	r.mu.Lock()
-	server := r.serverPeer
+	server := r.serverPlayer
 	r.mu.Unlock()
 	if server == nil {
 		http.Error(w, "no server connected", http.StatusNotFound)
@@ -211,8 +211,8 @@ func (r *Relay) handleOffer(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	peerRole := role(body.Role)
-	if peerRole != roleServer && peerRole != roleClient {
+	playerRole := role(body.Role)
+	if playerRole != roleServer && playerRole != roleClient {
 		http.Error(w, "role must be 'server' or 'client'", http.StatusBadRequest)
 		return
 	}
@@ -223,8 +223,8 @@ func (r *Relay) handleOffer(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	p := &peer{id: uuid.New(), role: peerRole, pc: pc}
-	if peerRole == roleServer {
+	p := &player{id: uuid.New(), role: playerRole, pc: pc}
+	if playerRole == roleServer {
 		p.settings = body.Settings
 	}
 
@@ -243,7 +243,7 @@ func (r *Relay) handleOffer(w http.ResponseWriter, req *http.Request) {
 	pc.OnConnectionStateChange(func(s webrtc.PeerConnectionState) {
 		switch s {
 		case webrtc.PeerConnectionStateDisconnected, webrtc.PeerConnectionStateFailed, webrtc.PeerConnectionStateClosed:
-			r.removePeer(p)
+			r.removePlayer(p)
 		case webrtc.PeerConnectionStateUnknown, webrtc.PeerConnectionStateNew, webrtc.PeerConnectionStateConnecting, webrtc.PeerConnectionStateConnected:
 		}
 	})
@@ -275,34 +275,34 @@ func (r *Relay) handleOffer(w http.ResponseWriter, req *http.Request) {
 
 	resp := offerResponse{
 		SDP:      pc.LocalDescription().SDP,
-		ClientID: p.id.String(),
+		PlayerID: p.id.String(),
 	}
 
 	r.mu.Lock()
-	r.peers[p.id] = p
-	if peerRole == roleServer {
-		previousServer := r.serverPeer
-		r.serverPeer = p
+	r.players[p.id] = p
+	if playerRole == roleServer {
+		previousServer := r.serverPlayer
+		r.serverPlayer = p
 		r.mu.Unlock()
 		if previousServer != nil {
 			go func() { _ = previousServer.pc.Close() }()
 		}
 	} else {
-		if r.serverPeer != nil {
-			resp.ServerID = r.serverPeer.id.String()
+		if r.serverPlayer != nil {
+			resp.ServerPlayerID = r.serverPlayer.id.String()
 		}
 		r.mu.Unlock()
 	}
 
-	if peerRole == roleClient {
-		r.notifyServer(frameConnected, p.id)
+	if playerRole == roleClient {
+		r.notifyServer(framePlayerConnected, p.id)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(resp)
 }
 
-func (r *Relay) handleMessage(sender *peer, index int, data []byte) {
+func (r *Relay) handleMessage(sender *player, index int, data []byte) {
 	t, targetID, payload, err := decodeFrame(data)
 	if err != nil {
 		return
@@ -310,59 +310,59 @@ func (r *Relay) handleMessage(sender *peer, index int, data []byte) {
 
 	switch t {
 	case frameData:
-		if target, ok := r.lookupPeer(targetID); ok && mayAddress(sender, target) {
+		if target, ok := r.lookupPlayer(targetID); ok && mayAddress(sender, target) {
 			target.send(index, encodeFrame(frameData, sender.id, payload))
 		}
-	case frameDrop:
-		if target, ok := r.lookupPeer(targetID); ok && mayAddress(sender, target) {
+	case frameDisconnectPlayer:
+		if target, ok := r.lookupPlayer(targetID); ok && mayAddress(sender, target) {
 			go func() { _ = target.pc.Close() }()
 		}
-	case frameConnected, frameDisconnected:
+	case framePlayerConnected, framePlayerDisconnected:
 	}
 }
 
 // mayAddress reports whether sender is allowed to send a frame targeting
 // target. Clients may only address the server; the server may address any
-// connected peer.
-func mayAddress(sender, target *peer) bool {
+// connected player.
+func mayAddress(sender, target *player) bool {
 	if sender.role == roleServer {
 		return true
 	}
 	return target.role == roleServer
 }
 
-func (r *Relay) lookupPeer(id uuid.UUID) (*peer, bool) {
+func (r *Relay) lookupPlayer(id uuid.UUID) (*player, bool) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	p, ok := r.peers[id]
+	p, ok := r.players[id]
 	return p, ok
 }
 
-func (r *Relay) removePeer(p *peer) {
+func (r *Relay) removePlayer(p *player) {
 	r.mu.Lock()
-	existing, ok := r.peers[p.id]
+	existing, ok := r.players[p.id]
 	if !ok || existing != p {
 		r.mu.Unlock()
 		return
 	}
-	delete(r.peers, p.id)
-	wasServer := r.serverPeer == p
+	delete(r.players, p.id)
+	wasServer := r.serverPlayer == p
 	if wasServer {
-		r.serverPeer = nil
+		r.serverPlayer = nil
 	}
 	r.mu.Unlock()
 
 	if !wasServer {
-		r.notifyServer(frameDisconnected, p.id)
+		r.notifyServer(framePlayerDisconnected, p.id)
 	}
 }
 
-func (r *Relay) notifyServer(t frameType, peerID uuid.UUID) {
+func (r *Relay) notifyServer(t frameType, playerID uuid.UUID) {
 	r.mu.Lock()
-	server := r.serverPeer
+	server := r.serverPlayer
 	r.mu.Unlock()
 	if server == nil {
 		return
 	}
-	server.send(channelReliableOrdered, encodeFrame(t, peerID, nil))
+	server.send(channelReliableOrdered, encodeFrame(t, playerID, nil))
 }

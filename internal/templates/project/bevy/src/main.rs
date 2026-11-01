@@ -14,8 +14,8 @@ fn setup(mut commands: Commands, bridge: NonSend<Bridge>) {
     commands.spawn(Camera2d);
     info!(
         "Running as {:?} with id {}",
-        bridge.network_mode(),
-        bridge.own_id()
+        bridge.network_role(),
+        bridge.self_player().id
     );
     // Values the initiator chose for the `[[setting]]`s in mugon.toml. `get_bool`, `get_number`
     // and `get_strings` read the other setting types.

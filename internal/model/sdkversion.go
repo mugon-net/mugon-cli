@@ -2,4 +2,4 @@
 
 package model
 
-const DefaultJsSdkVersion = "0.2.0"
+const DefaultJsSdkVersion = "0.3.0"

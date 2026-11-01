@@ -13,7 +13,7 @@ export type NextRoundResolution =
   | { values: Record<string, SettingValue> }
   | { error: string };
 
-// What the platform does with the settings a game hands to `nextGame`: they
+// What the platform does with the settings a game hands to `requestNextRound`: they
 // replace the whole set, settings left out take their defaults, and anything
 // the declarations or `settings-valid-when` reject ends the game instead.
 export function resolveNextRoundSettings(

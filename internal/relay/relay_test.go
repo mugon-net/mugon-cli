@@ -18,8 +18,8 @@ type testClient struct {
 	channels [channelCount]*webrtc.DataChannel
 	messages [channelCount]chan []byte
 
-	clientID string
-	serverID string
+	playerID string
+	serverPlayerID string
 }
 
 func mustParseID(t *testing.T, s string) uuid.UUID {
@@ -111,8 +111,8 @@ func dialRelayWithSettings(t *testing.T, srvURL string, role string, settings js
 		t.Fatal("timed out waiting for data channels to open")
 	}
 
-	tc.clientID = body.ClientID
-	tc.serverID = body.ServerID
+	tc.playerID = body.PlayerID
+	tc.serverPlayerID = body.ServerPlayerID
 	return tc
 }
 
@@ -133,16 +133,16 @@ func TestRelayEndToEnd(t *testing.T) {
 	defer srv.Close()
 
 	server := dialRelay(t, srv.URL, "server")
-	if server.clientID == "" {
-		t.Fatal("server did not receive a clientId")
+	if server.playerID == "" {
+		t.Fatal("server did not receive a playerId")
 	}
 
 	client := dialRelay(t, srv.URL, "client")
-	if client.clientID == "" {
-		t.Fatal("client did not receive a clientId")
+	if client.playerID == "" {
+		t.Fatal("client did not receive a playerId")
 	}
-	if client.serverID != server.clientID {
-		t.Fatalf("client.serverID = %q, want %q", client.serverID, server.clientID)
+	if client.serverPlayerID != server.playerID {
+		t.Fatalf("client.serverPlayerID = %q, want %q", client.serverPlayerID, server.playerID)
 	}
 
 	// Connect notifications arrive on the reliable ordered channel.
@@ -151,12 +151,12 @@ func TestRelayEndToEnd(t *testing.T) {
 	if err != nil {
 		t.Fatalf("decodeFrame: %v", err)
 	}
-	if ft != frameConnected || id.String() != client.clientID {
-		t.Fatalf("expected connected frame for %s, got type=%d id=%s", client.clientID, ft, id)
+	if ft != framePlayerConnected || id.String() != client.playerID {
+		t.Fatalf("expected connected frame for %s, got type=%d id=%s", client.playerID, ft, id)
 	}
 
 	payload := []byte("hello from client")
-	if err := client.channels[channelReliableOrdered].Send(encodeFrame(frameData, mustParseID(t, client.serverID), payload)); err != nil {
+	if err := client.channels[channelReliableOrdered].Send(encodeFrame(frameData, mustParseID(t, client.serverPlayerID), payload)); err != nil {
 		t.Fatalf("client send: %v", err)
 	}
 	dataFrame := server.recv(t, channelReliableOrdered, 5*time.Second)
@@ -164,12 +164,12 @@ func TestRelayEndToEnd(t *testing.T) {
 	if err != nil {
 		t.Fatalf("decodeFrame: %v", err)
 	}
-	if ft != frameData || id.String() != client.clientID || !bytes.Equal(gotPayload, payload) {
+	if ft != frameData || id.String() != client.playerID || !bytes.Equal(gotPayload, payload) {
 		t.Fatalf("unexpected data frame: type=%d id=%s payload=%q", ft, id, gotPayload)
 	}
 
 	reply := []byte("hello from server")
-	if err := server.channels[channelReliableOrdered].Send(encodeFrame(frameData, mustParseID(t, client.clientID), reply)); err != nil {
+	if err := server.channels[channelReliableOrdered].Send(encodeFrame(frameData, mustParseID(t, client.playerID), reply)); err != nil {
 		t.Fatalf("server send: %v", err)
 	}
 	replyFrame := client.recv(t, channelReliableOrdered, 5*time.Second)
@@ -177,7 +177,7 @@ func TestRelayEndToEnd(t *testing.T) {
 	if err != nil {
 		t.Fatalf("decodeFrame: %v", err)
 	}
-	if ft != frameData || id.String() != server.clientID || !bytes.Equal(gotReply, reply) {
+	if ft != frameData || id.String() != server.playerID || !bytes.Equal(gotReply, reply) {
 		t.Fatalf("unexpected reply frame: type=%d id=%s payload=%q", ft, id, gotReply)
 	}
 
@@ -189,8 +189,8 @@ func TestRelayEndToEnd(t *testing.T) {
 	if err != nil {
 		t.Fatalf("decodeFrame: %v", err)
 	}
-	if ft != frameDisconnected || id.String() != client.clientID {
-		t.Fatalf("expected disconnected frame for %s, got type=%d id=%s", client.clientID, ft, id)
+	if ft != framePlayerDisconnected || id.String() != client.playerID {
+		t.Fatalf("expected disconnected frame for %s, got type=%d id=%s", client.playerID, ft, id)
 	}
 }
 
@@ -243,7 +243,7 @@ func TestRelayPreservesSendChannel(t *testing.T) {
 
 	const sendChannel = int(1) // reliable unordered
 	payload := []byte("via reliable unordered")
-	if err := client.channels[sendChannel].Send(encodeFrame(frameData, mustParseID(t, client.serverID), payload)); err != nil {
+	if err := client.channels[sendChannel].Send(encodeFrame(frameData, mustParseID(t, client.serverPlayerID), payload)); err != nil {
 		t.Fatalf("client send: %v", err)
 	}
 
@@ -278,7 +278,7 @@ func TestClientCannotAddressOtherClient(t *testing.T) {
 	server.recv(t, channelReliableOrdered, 5*time.Second)
 
 	payload := []byte("sneaky direct message")
-	if err := clientA.channels[channelReliableOrdered].Send(encodeFrame(frameData, mustParseID(t, clientB.clientID), payload)); err != nil {
+	if err := clientA.channels[channelReliableOrdered].Send(encodeFrame(frameData, mustParseID(t, clientB.playerID), payload)); err != nil {
 		t.Fatalf("clientA send: %v", err)
 	}
 
@@ -290,7 +290,7 @@ func TestClientCannotAddressOtherClient(t *testing.T) {
 
 	// The server, however, can still address clientB directly.
 	reply := []byte("server to clientB")
-	if err := server.channels[channelReliableOrdered].Send(encodeFrame(frameData, mustParseID(t, clientB.clientID), reply)); err != nil {
+	if err := server.channels[channelReliableOrdered].Send(encodeFrame(frameData, mustParseID(t, clientB.playerID), reply)); err != nil {
 		t.Fatalf("server send: %v", err)
 	}
 	replyFrame := clientB.recv(t, channelReliableOrdered, 5*time.Second)
@@ -298,7 +298,7 @@ func TestClientCannotAddressOtherClient(t *testing.T) {
 	if err != nil {
 		t.Fatalf("decodeFrame: %v", err)
 	}
-	if ft != frameData || id.String() != server.clientID || !bytes.Equal(gotReply, reply) {
+	if ft != frameData || id.String() != server.playerID || !bytes.Equal(gotReply, reply) {
 		t.Fatalf("unexpected reply frame: type=%d id=%s payload=%q", ft, id, gotReply)
 	}
 }

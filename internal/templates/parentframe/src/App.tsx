@@ -2,7 +2,7 @@ import {
   createVersionFileFetcher,
   LaunchPhase,
   LoadProgress,
-  NetworkMode,
+  NetworkRole,
   NoServerAvailableError,
   Parentframe,
   sdkMajor,
@@ -146,7 +146,7 @@ export function App({ config }: { config: MugonConfig }) {
   };
 
   const launch = async (
-    mode: NetworkMode,
+    role: NetworkRole,
     hostSettings: Record<string, SettingValue> = settingValues,
   ) => {
     setNotice(undefined);
@@ -157,7 +157,7 @@ export function App({ config }: { config: MugonConfig }) {
       // A client plays with whatever the host started with and never uses its
       // own panel, so there is nothing to launch until a host exists.
       const launchSettings =
-        mode === "client" ? await fetchHostSettings(relayUrl) : hostSettings;
+        role === "client" ? await fetchHostSettings(relayUrl) : hostSettings;
       if (!launchSettings) {
         setStatus({ kind: "no-server" });
         return;
@@ -174,13 +174,13 @@ export function App({ config }: { config: MugonConfig }) {
         onProgress: setProgress,
         onEndGameRequest: () =>
           returnToStart("The game ended. The platform would return everyone to the lobby."),
-        onNextGameRequest: setNextRound,
+        onNextRoundRequest: setNextRound,
       });
       parentframeRef.current = parentframe;
       await parentframe.launch({
         container: containerRef.current!,
         src: gameUrl,
-        mode,
+        role,
         settings: launchSettings,
         totalBytes: build.totalBytes,
       });

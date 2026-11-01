@@ -49,8 +49,8 @@ var settingTypeDtoEnums = map[SettingTypeEnum]oapi.GameVersionSettingTypeEnum{
 	SettingTypeEnumText:    oapi.GameVersionSettingTypeEnumTEXT,
 }
 
-// The namespace the mugon SDK itself occupies in the settings a game receives
-// (mugon.networkmode, mugon.serverid, mugon.clientid).
+// The namespace reserved for settings the mugon SDK itself may add to what a
+// game receives.
 const reservedSettingKeyPrefix = "mugon."
 
 // SettingConfig is one `[[setting]]` entry in mugon.toml. Because TOML values
