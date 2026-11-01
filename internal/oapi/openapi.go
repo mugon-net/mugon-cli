@@ -1242,8 +1242,8 @@ type CreateLobbyRequest struct {
 type CreateVersionRequest struct {
 	GameId openapi_types.UUID `json:"gameId"`
 
-	// SdkVersion Major version of the @mugon/sdk the game uses.
-	SdkVersion        int32                   `json:"sdkVersion"`
+	// SdkMajor Major version of the @mugon/sdk the game uses.
+	SdkMajor          int32                   `json:"sdkMajor"`
 	Settings          *GameVersionSettingsDTO `json:"settings,omitempty"`
 	SettingsValidWhen *string                 `json:"settingsValidWhen,omitempty"`
 	Version           string                  `json:"version"`
@@ -1309,13 +1309,13 @@ type GameInstanceDTO struct {
 
 // GameVersionDTO defines model for GameVersionDTO.
 type GameVersionDTO struct {
-	BaseUrl    string                 `json:"baseUrl"`
-	CdnToken   CdnTokenDTO            `json:"cdnToken"`
-	Created    time.Time              `json:"created"`
-	GameId     openapi_types.UUID     `json:"gameId"`
-	Id         openapi_types.UUID     `json:"id"`
-	SdkVersion int32                  `json:"sdkVersion"`
-	Settings   GameVersionSettingsDTO `json:"settings"`
+	BaseUrl  string                 `json:"baseUrl"`
+	CdnToken CdnTokenDTO            `json:"cdnToken"`
+	Created  time.Time              `json:"created"`
+	GameId   openapi_types.UUID     `json:"gameId"`
+	Id       openapi_types.UUID     `json:"id"`
+	SdkMajor int32                  `json:"sdkMajor"`
+	Settings GameVersionSettingsDTO `json:"settings"`
 
 	// SettingsValidWhen CEL expression that must be true before the game can start. Absent means the settings are always valid.
 	SettingsValidWhen *string            `json:"settingsValidWhen,omitempty"`

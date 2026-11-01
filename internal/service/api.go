@@ -68,8 +68,8 @@ func (api *Api) GetGameByProjectName(ctx context.Context, projectName string) (o
 	return response.JSON200.Game, nil
 }
 
-func (api *Api) CreateVersion(ctx context.Context, projectId uuid.UUID, version string, sdkVersion int, settings []oapi.GameVersionSettingsItemDTO, settingsValidWhen string) (uuid.UUID, error) {
-	request := oapi.CreateVersionRequest{GameId: projectId, Version: version, SdkVersion: int32(sdkVersion), Settings: &settings}
+func (api *Api) CreateVersion(ctx context.Context, projectId uuid.UUID, version string, sdkMajor int, settings []oapi.GameVersionSettingsItemDTO, settingsValidWhen string) (uuid.UUID, error) {
+	request := oapi.CreateVersionRequest{GameId: projectId, Version: version, SdkMajor: int32(sdkMajor), Settings: &settings}
 	if settingsValidWhen != "" {
 		request.SettingsValidWhen = &settingsValidWhen
 	}
