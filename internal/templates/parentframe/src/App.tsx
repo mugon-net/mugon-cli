@@ -81,8 +81,11 @@ export function App({ config }: { config: MugonConfig }) {
           message: `mugon.toml declares js-sdk-version major ${declaredMajor}, but this CLI only supports major ${sdkMajor}. Update the CLI or the js-sdk-version.`,
         },
   );
-  // The settings the game proposed for the next round, awaiting confirmation.
-  const [nextRound, setNextRound] = useState<Record<string, SettingValue>>();
+  // What the game proposed for the next round, awaiting confirmation.
+  const [nextRound, setNextRound] = useState<{
+    settings: Record<string, SettingValue>;
+    carryOver?: string;
+  }>();
   // Why the game is back at the start screen, when the game caused it.
   const [notice, setNotice] = useState<string>();
   const [phases, setPhases] = useState<LaunchPhase[]>([]);
@@ -132,7 +135,7 @@ export function App({ config }: { config: MugonConfig }) {
     const resolution = resolveNextRoundSettings(
       config.settings,
       settingExpressions,
-      nextRound ?? {},
+      nextRound?.settings ?? {},
     );
     if ("error" in resolution) {
       returnToStart(
@@ -142,12 +145,13 @@ export function App({ config }: { config: MugonConfig }) {
     }
     returnToStart();
     setSettingValues(resolution.values);
-    void launch("server", resolution.values);
+    void launch("server", resolution.values, nextRound?.carryOver);
   };
 
   const launch = async (
     role: NetworkRole,
     hostSettings: Record<string, SettingValue> = settingValues,
+    carryOver?: string,
   ) => {
     setNotice(undefined);
     setStatus({ kind: "loading" });
@@ -178,7 +182,8 @@ export function App({ config }: { config: MugonConfig }) {
         onProgress: setProgress,
         onEndGameRequest: () =>
           returnToStart("The game ended. The platform would return everyone to the lobby."),
-        onNextRoundRequest: setNextRound,
+        onNextRoundRequest: (settings, carryOver) =>
+          setNextRound({ settings, carryOver }),
       });
       parentframeRef.current = parentframe;
       await parentframe.launch({
@@ -186,6 +191,7 @@ export function App({ config }: { config: MugonConfig }) {
         src: gameUrl,
         role,
         settings: launchSettings,
+        carryOver,
         totalBytes: build.totalBytes,
       });
       setStatus({ kind: "running" });
