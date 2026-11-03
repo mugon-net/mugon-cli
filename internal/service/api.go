@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"strings"
@@ -49,11 +50,11 @@ func (api *Api) ValidateApiKey(ctx context.Context, projectName string) error {
 	case 200:
 		return nil
 	case 401, 403:
-		return fmt.Errorf("invalid API key")
+		return fmt.Errorf("invalid API key: %s", describeApiError(response.Body, response.HTTPResponse))
 	case 404:
-		return fmt.Errorf("project '%s' not found", projectName)
+		return fmt.Errorf("project '%s' not found: %s", projectName, describeApiError(response.Body, response.HTTPResponse))
 	default:
-		return fmt.Errorf("validation failed: %s", response.HTTPResponse.Status)
+		return fmt.Errorf("validation failed: %s", describeApiError(response.Body, response.HTTPResponse))
 	}
 }
 
@@ -63,7 +64,7 @@ func (api *Api) GetGameByProjectName(ctx context.Context, projectName string) (o
 		return oapi.GameDTO{}, err
 	}
 	if response.HTTPResponse.StatusCode != 200 {
-		return oapi.GameDTO{}, fmt.Errorf("failed to create version: %s", describeApiError(response.Body, response.HTTPResponse))
+		return oapi.GameDTO{}, fmt.Errorf("failed to get project: %s", describeApiError(response.Body, response.HTTPResponse))
 	}
 	return response.JSON200.Game, nil
 }
@@ -158,7 +159,8 @@ func (api *Api) UploadVersionFile(ctx context.Context, filePath string, uploadUr
 	defer resp.Body.Close() // nolint:errcheck
 
 	if resp.StatusCode >= 400 {
-		return fmt.Errorf("upload failed with status: %s", resp.Status)
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+		return fmt.Errorf("upload failed: %s", describeApiError(body, resp))
 	}
 
 	return nil
@@ -170,7 +172,7 @@ func (api *Api) FinishVersionUpload(ctx context.Context, versionId uuid.UUID) er
 		return err
 	}
 	if response.HTTPResponse.StatusCode != 200 {
-		return fmt.Errorf("failed to create version: %s", describeApiError(response.Body, response.HTTPResponse))
+		return fmt.Errorf("failed to finish version upload: %s", describeApiError(response.Body, response.HTTPResponse))
 	}
 	return nil
 }
