@@ -145,6 +145,21 @@ func requestHostname(r *http.Request) string {
 	return host
 }
 
+// frameAncestors lists the pages allowed to embed the game frame. frame-ancestors
+// covers every ancestor, not just the parent: a simulated client's tile lives on
+// its own `*.localhost` name (see simClientSrc in the parentframe), so the page
+// that embeds the tile has to be allowed too.
+func frameAncestors(host string, mainPort int) string {
+	ancestors := fmt.Sprintf("http://%v:%v/", host, mainPort)
+	if host == "localhost" || strings.HasSuffix(host, ".localhost") {
+		if host != "localhost" {
+			ancestors += fmt.Sprintf(" http://localhost:%v/", mainPort)
+		}
+		ancestors += fmt.Sprintf(" http://*.localhost:%v/", mainPort)
+	}
+	return ancestors
+}
+
 func findFreePort(startPort int) (net.Listener, int, error) {
 	for port := startPort; port < startPort+100; port++ {
 		ln, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
@@ -204,7 +219,7 @@ func ExecuteDevCommand(ctx context.Context, c *cli.Command) error {
 					fmt.Sprintf("worker-src   http://%v:%v/ blob:; ", host, gameFramePort)+
 					"base-uri     'none';"+
 					"form-action  'none';"+
-					fmt.Sprintf("frame-ancestors http://%v:%v/; ", host, mainPort)+
+					"frame-ancestors "+frameAncestors(host, mainPort)+"; "+
 					"sandbox allow-scripts allow-pointer-lock;")
 			w.Header().Set("Access-Control-Allow-Origin", "*")
 			childframeHandler.ServeHTTP(w, r)

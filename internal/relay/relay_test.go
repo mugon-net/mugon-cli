@@ -346,3 +346,124 @@ func TestClientCannotAddressOtherClient(t *testing.T) {
 		t.Fatalf("unexpected reply frame: type=%d id=%s payload=%q", ft, id, gotReply)
 	}
 }
+
+func putNetsim(t *testing.T, srvURL, playerID string, profile Profile) int {
+	t.Helper()
+	body, err := json.Marshal(netsimRequest{PlayerID: playerID, Profile: profile})
+	if err != nil {
+		t.Fatal(err)
+	}
+	req, err := http.NewRequest(http.MethodPut, srvURL+"/netsim", bytes.NewReader(body))
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatalf("PUT /netsim: %v", err)
+	}
+	_ = resp.Body.Close()
+	return resp.StatusCode
+}
+
+func TestNetsimEndpointRules(t *testing.T) {
+	r := New()
+	srv := httptest.NewServer(r.Handler())
+	defer srv.Close()
+
+	profile := Profile{LatencyMs: 40}
+	if status := putNetsim(t, srv.URL, uuid.NewString(), profile); status != http.StatusNotFound {
+		t.Fatalf("PUT without a server: status %d, want 404", status)
+	}
+
+	server := dialRelay(t, srv.URL, "server")
+	client := dialRelay(t, srv.URL, "client")
+
+	if status := putNetsim(t, srv.URL, client.playerID, profile); status != http.StatusForbidden {
+		t.Fatalf("PUT by a client: status %d, want 403", status)
+	}
+	if status := putNetsim(t, srv.URL, server.playerID, Profile{LossPercent: 101}); status != http.StatusBadRequest {
+		t.Fatalf("PUT out of range: status %d, want 400", status)
+	}
+	if status := putNetsim(t, srv.URL, server.playerID, profile); status != http.StatusNoContent {
+		t.Fatalf("PUT by the server: status %d, want 204", status)
+	}
+
+	resp, err := http.Get(srv.URL + "/netsim")
+	if err != nil {
+		t.Fatalf("GET /netsim: %v", err)
+	}
+	defer resp.Body.Close() // nolint:errcheck
+	var got netsimResponse
+	if err := json.NewDecoder(resp.Body).Decode(&got); err != nil {
+		t.Fatal(err)
+	}
+	if got.Profile != profile {
+		t.Fatalf("profile = %+v, want %+v", got.Profile, profile)
+	}
+}
+
+func TestNetsimResetsWhenTheServerChanges(t *testing.T) {
+	r := New()
+	srv := httptest.NewServer(r.Handler())
+	defer srv.Close()
+
+	server := dialRelay(t, srv.URL, "server")
+	if status := putNetsim(t, srv.URL, server.playerID, Profile{LatencyMs: 40}); status != http.StatusNoContent {
+		t.Fatalf("PUT: status %d, want 204", status)
+	}
+	dialRelay(t, srv.URL, "server")
+
+	r.mu.Lock()
+	profile := r.profile
+	r.mu.Unlock()
+	if profile != (Profile{}) {
+		t.Fatalf("profile after a new server = %+v, want off", profile)
+	}
+}
+
+func TestNetsimDelaysClientLinksOnly(t *testing.T) {
+	r := New()
+	srv := httptest.NewServer(r.Handler())
+	defer srv.Close()
+
+	server := dialRelay(t, srv.URL, "server")
+	client := dialRelay(t, srv.URL, "client")
+	server.recv(t, channelReliableOrdered, 5*time.Second) // drain connected
+
+	const latency = 150 * time.Millisecond
+	if status := putNetsim(t, srv.URL, server.playerID, Profile{LatencyMs: int(latency / time.Millisecond)}); status != http.StatusNoContent {
+		t.Fatalf("PUT: status %d, want 204", status)
+	}
+
+	start := time.Now()
+	if err := client.channels[channelReliableOrdered].Send(encodeFrame(frameData, mustParseID(t, client.serverPlayerID), []byte("up"))); err != nil {
+		t.Fatal(err)
+	}
+	server.recv(t, channelReliableOrdered, 5*time.Second)
+	if elapsed := time.Since(start); elapsed < latency-10*time.Millisecond {
+		t.Fatalf("client to server took %v, want at least %v", elapsed, latency)
+	}
+
+	start = time.Now()
+	if err := server.channels[channelReliableOrdered].Send(encodeFrame(frameData, mustParseID(t, client.playerID), []byte("down"))); err != nil {
+		t.Fatal(err)
+	}
+	client.recv(t, channelReliableOrdered, 5*time.Second)
+	if elapsed := time.Since(start); elapsed < latency-10*time.Millisecond {
+		t.Fatalf("server to client took %v, want at least %v", elapsed, latency)
+	}
+}
+
+func TestNetsimDoesNotDelayControlFrames(t *testing.T) {
+	r := New()
+	srv := httptest.NewServer(r.Handler())
+	defer srv.Close()
+
+	server := dialRelay(t, srv.URL, "server")
+	if status := putNetsim(t, srv.URL, server.playerID, Profile{LatencyMs: 2000}); status != http.StatusNoContent {
+		t.Fatalf("PUT: status %d, want 204", status)
+	}
+
+	dialRelay(t, srv.URL, "client")
+	server.recv(t, channelReliableOrdered, 500*time.Millisecond)
+}

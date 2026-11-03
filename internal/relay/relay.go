@@ -101,6 +101,8 @@ type player struct {
 	// settings are the values the server player started the game with, which
 	// clients fetch from /settings before they launch.
 	settings json.RawMessage
+	// link simulates the network conditions of a client; nil for the server.
+	link *link
 
 	mu       sync.Mutex
 	channels [channelCount]channel
@@ -143,6 +145,9 @@ type Relay struct {
 	joined       int
 	players      map[uuid.UUID]*player
 	serverPlayer *player
+	// profile is the simulated network condition of every client link. It is
+	// reset whenever the server player changes.
+	profile Profile
 }
 
 func New() *Relay {
@@ -153,13 +158,14 @@ func (r *Relay) Handler() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/offer", r.handleOffer)
 	mux.HandleFunc("/settings", r.handleSettings)
+	mux.HandleFunc("/netsim", r.handleNetsim)
 	return corsMiddleware(mux)
 }
 
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 		if req.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusNoContent)
@@ -210,6 +216,63 @@ func (r *Relay) handleSettings(w http.ResponseWriter, req *http.Request) {
 	_ = json.NewEncoder(w).Encode(settingsResponse{Settings: server.settings})
 }
 
+type netsimRequest struct {
+	// PlayerID must be the connected server's id: only the host tunes the network.
+	PlayerID string  `json:"playerId"`
+	Profile  Profile `json:"profile"`
+}
+
+type netsimResponse struct {
+	Profile Profile `json:"profile"`
+}
+
+// handleNetsim reads (GET) or sets (PUT) the simulated network condition of
+// every client link.
+func (r *Relay) handleNetsim(w http.ResponseWriter, req *http.Request) {
+	switch req.Method {
+	case http.MethodGet:
+		r.mu.Lock()
+		profile := r.profile
+		r.mu.Unlock()
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(netsimResponse{Profile: profile})
+	case http.MethodPut:
+		var body netsimRequest
+		if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
+			http.Error(w, "invalid request body", http.StatusBadRequest)
+			return
+		}
+		if err := body.Profile.Validate(); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		r.mu.Lock()
+		defer r.mu.Unlock()
+		if r.serverPlayer == nil {
+			http.Error(w, "no server connected", http.StatusNotFound)
+			return
+		}
+		if r.serverPlayer.id.String() != body.PlayerID {
+			http.Error(w, "only the server may change the network simulation", http.StatusForbidden)
+			return
+		}
+		r.setProfileLocked(body.Profile)
+		w.WriteHeader(http.StatusNoContent)
+	default:
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+func (r *Relay) setProfileLocked(profile Profile) {
+	r.profile = profile
+	for _, p := range r.players {
+		if p.link != nil {
+			p.link.setProfile(profile)
+		}
+	}
+}
+
 func (r *Relay) handleOffer(w http.ResponseWriter, req *http.Request) {
 	if req.Method != http.MethodPost {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
@@ -237,6 +300,10 @@ func (r *Relay) handleOffer(w http.ResponseWriter, req *http.Request) {
 	p := &player{id: uuid.New(), name: r.nameFor(body.Name), role: playerRole, pc: pc}
 	if playerRole == roleServer {
 		p.settings = body.Settings
+	} else {
+		r.mu.Lock()
+		p.link = newLink(r.profile)
+		r.mu.Unlock()
 	}
 
 	pc.OnDataChannel(func(dc *webrtc.DataChannel) {
@@ -295,6 +362,7 @@ func (r *Relay) handleOffer(w http.ResponseWriter, req *http.Request) {
 	if playerRole == roleServer {
 		previousServer := r.serverPlayer
 		r.serverPlayer = p
+		r.setProfileLocked(Profile{})
 		r.mu.Unlock()
 		if previousServer != nil {
 			go func() { _ = previousServer.pc.Close() }()
@@ -324,7 +392,12 @@ func (r *Relay) handleMessage(sender *player, index int, data []byte) {
 	switch t {
 	case frameData:
 		if target, ok := r.lookupPlayer(targetID); ok && mayAddress(sender, target) {
-			target.send(index, encodeFrame(frameData, sender.id, payload))
+			deliver := func() { target.send(index, encodeFrame(frameData, sender.id, payload)) }
+			if clientLink := linkBetween(sender, target); clientLink != nil {
+				clientLink.submit(index, deliver)
+			} else {
+				deliver()
+			}
 		}
 	case frameDisconnectPlayer:
 		if target, ok := r.lookupPlayer(targetID); ok && mayAddress(sender, target) {
@@ -332,6 +405,15 @@ func (r *Relay) handleMessage(sender *player, index int, data []byte) {
 		}
 	case framePlayerConnected, framePlayerDisconnected:
 	}
+}
+
+// linkBetween returns the client's link of a frame between the two players, or
+// nil when neither is a client.
+func linkBetween(sender, target *player) *link {
+	if sender.link != nil {
+		return sender.link
+	}
+	return target.link
 }
 
 // mayAddress reports whether sender is allowed to send a frame targeting
@@ -377,8 +459,13 @@ func (r *Relay) removePlayer(p *player) {
 	wasServer := r.serverPlayer == p
 	if wasServer {
 		r.serverPlayer = nil
+		r.setProfileLocked(Profile{})
 	}
 	r.mu.Unlock()
+
+	if p.link != nil {
+		p.link.close()
+	}
 
 	if !wasServer {
 		r.notifyServer(framePlayerDisconnected, p.id, nil)

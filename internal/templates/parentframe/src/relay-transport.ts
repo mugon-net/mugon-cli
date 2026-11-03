@@ -1,5 +1,6 @@
 import { Channel } from "@mugon/sdk/protocol";
 import type { SettingValue } from "@mugon/sdk/settings";
+import type { NetworkProfile } from "./network-profile";
 import type {
   NetworkRole,
   ParentframeTransport,
@@ -36,6 +37,8 @@ export class RelayTransport implements ParentframeTransport {
   private readonly name: string | undefined;
   private pc: RTCPeerConnection | undefined;
   private dataChannels: RTCDataChannel[] = [];
+  // The relay-assigned id of this tab's player, known once connected.
+  playerId: string | undefined;
 
   // `hostSettings` are what this tab's settings panel holds. They are only
   // sent when this player connects as the server; the relay serves them to
@@ -92,6 +95,7 @@ export class RelayTransport implements ParentframeTransport {
 
     this.pc = pc;
     this.dataChannels = channels;
+    this.playerId = body.playerId;
     channels.forEach((dc, index) => {
       dc.onmessage = (event) =>
         this.handleMessage(index as Channel, event, handlers);
@@ -116,7 +120,10 @@ export class RelayTransport implements ParentframeTransport {
     return {
       self: { id: body.playerId, name: body.name },
       server: body.serverPlayerId
-        ? { id: body.serverPlayerId, name: body.serverName ?? body.serverPlayerId }
+        ? {
+            id: body.serverPlayerId,
+            name: body.serverName ?? body.serverPlayerId,
+          }
         : undefined,
     };
   }
@@ -212,6 +219,21 @@ function decodeFrame(data: ArrayBuffer): {
   };
 }
 
+// Sets the simulated network condition of every client link. The relay only
+// accepts it from the current server, identified by its player id.
+export async function putNetworkProfile(
+  relayUrl: string,
+  serverPlayerId: string,
+  profile: NetworkProfile,
+): Promise<void> {
+  const res = await fetch(`${relayUrl}/netsim`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ playerId: serverPlayerId, profile }),
+  });
+  if (!res.ok) throw new Error(`relay responded with ${res.status}`);
+}
+
 // The settings the relay's current server started the game with, or undefined
 // while no server is connected. A client launches with these, the way mugon.net
 // launches every lobby member with the lobby's values.
@@ -221,6 +243,8 @@ export async function fetchHostSettings(
   const res = await fetch(`${relayUrl}/settings`);
   if (res.status === 404) return undefined;
   if (!res.ok) throw new Error(`relay responded with ${res.status}`);
-  const body = (await res.json()) as { settings?: Record<string, SettingValue> };
+  const body = (await res.json()) as {
+    settings?: Record<string, SettingValue>;
+  };
   return body.settings ?? {};
 }

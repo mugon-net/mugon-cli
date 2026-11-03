@@ -18,8 +18,18 @@ import {
   settingValuesFromQuery,
 } from "@mugon/sdk/settings";
 import { resolveNextRoundSettings } from "./next-round";
-import { fetchHostSettings, RelayTransport } from "./relay-transport";
+import { NetworkBar } from "./network-bar";
+import { NETWORK_OFF, NetworkProfile } from "./network-profile";
+import {
+  fetchHostSettings,
+  putNetworkProfile,
+  RelayTransport,
+} from "./relay-transport";
 import { SettingsPanel } from "./settings-panel";
+
+const MAX_SIM_CLIENTS = 7;
+const SIM_READY_MESSAGE = "mugon-sim-ready";
+const SIM_LAUNCH_MESSAGE = "mugon-sim-launch";
 
 export interface MugonConfig {
   projectId: string;
@@ -45,7 +55,10 @@ async function readBuildInfo(): Promise<{ id: string; totalBytes: number }> {
   const build = await (await fetch("/__mugon/build")).json();
   if (typeof caches !== "undefined") {
     for (const name of await caches.keys()) {
-      if (name.startsWith(CACHE_PREFIX) && name !== `${CACHE_PREFIX}${build.id}`) {
+      if (
+        name.startsWith(CACHE_PREFIX) &&
+        name !== `${CACHE_PREFIX}${build.id}`
+      ) {
         await caches.delete(name);
       }
     }
@@ -94,7 +107,89 @@ export function App({ config }: { config: MugonConfig }) {
     done: false,
   });
 
+  // A simulated client is an iframe of this page the host tab embeds: it has no
+  // start screen and launches as a client when the host tab tells it to.
+  const simClientIndex = new URLSearchParams(location.search).get("sim-client");
+  const isSimClient = simClientIndex !== null;
+  const [activeRole, setActiveRole] = useState<NetworkRole>();
+  const [simClientCount, setSimClientCount] = useState(0);
+  const [simClientsActive, setSimClientsActive] = useState(false);
+  // Keeps the names of simulated clients from different tabs apart.
+  const [tabTag] = useState(() => Math.random().toString(16).slice(2, 6));
+  const simClientName = (number: number) =>
+    activeRole === "server" ? `Sim ${number}` : `Sim ${tabTag}-${number}`;
+  const simTileRefs = useRef<(HTMLIFrameElement | null)[]>([]);
+  // A browser runs all frames of one site on a single thread, and the ports of
+  // `localhost` do not make sites apart, so tiles on the same host would split
+  // one thread between all their games. Each `*.localhost` name is its own site.
+  const simClientSrc = (number: number) => {
+    const isLocalhost =
+      location.hostname === "localhost" ||
+      location.hostname.endsWith(".localhost");
+    const origin = isLocalhost
+      ? `${location.protocol}//sim-${tabTag}-${number}.localhost${location.port ? `:${location.port}` : ""}`
+      : location.origin;
+    const query = new URLSearchParams({
+      "sim-client": String(number),
+      name: simClientName(number),
+      "parent-origin": location.origin,
+    });
+    return `${origin}${location.pathname}?${query}`;
+  };
+  // Lives in this tab (not the relay) so it survives next rounds; a reload resets it.
+  const [networkProfile, setNetworkProfile] =
+    useState<NetworkProfile>(NETWORK_OFF);
+  const networkProfileRef = useRef<NetworkProfile>(NETWORK_OFF);
+  const hostTransportRef = useRef<RelayTransport | null>(null);
+
+  const relayUrl = `${location.protocol}//${location.hostname}:${config.webrtcPort}`;
+
+  const applyNetworkProfile = () => {
+    const playerId = hostTransportRef.current?.playerId;
+    if (!playerId) return;
+    putNetworkProfile(relayUrl, playerId, networkProfileRef.current).catch(
+      (error) => console.error("Applying the network profile failed:", error),
+    );
+  };
+
+  const changeNetworkProfile = (profile: NetworkProfile) => {
+    networkProfileRef.current = profile;
+    setNetworkProfile(profile);
+    applyNetworkProfile();
+  };
+
   useEffect(() => () => parentframeRef.current?.destroy(), []);
+
+  useEffect(() => {
+    const parentOrigin = new URLSearchParams(location.search).get(
+      "parent-origin",
+    );
+    const onMessage = (event: MessageEvent) => {
+      if (isSimClient) {
+        if (
+          event.source === window.parent &&
+          event.origin === parentOrigin &&
+          event.data?.type === SIM_LAUNCH_MESSAGE
+        ) {
+          void launch("client");
+        }
+      } else if (
+        event.data?.type === SIM_READY_MESSAGE &&
+        simTileRefs.current.some((tile) => tile?.contentWindow === event.source)
+      ) {
+        (event.source as Window).postMessage(
+          { type: SIM_LAUNCH_MESSAGE },
+          event.origin,
+        );
+      }
+    };
+    window.addEventListener("message", onMessage);
+    if (isSimClient && parentOrigin) {
+      window.parent.postMessage({ type: SIM_READY_MESSAGE }, parentOrigin);
+    }
+    return () => window.removeEventListener("message", onMessage);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const fail = (error: unknown) => {
     if (error instanceof NoServerAvailableError) {
@@ -124,6 +219,9 @@ export function App({ config }: { config: MugonConfig }) {
   const returnToStart = (reason?: string) => {
     parentframeRef.current?.destroy();
     parentframeRef.current = null;
+    hostTransportRef.current = null;
+    setActiveRole(undefined);
+    setSimClientsActive(false);
     setNextRound(undefined);
     setPhases([]);
     setProgress({ loadedBytes: 0, done: false });
@@ -157,7 +255,6 @@ export function App({ config }: { config: MugonConfig }) {
     setStatus({ kind: "loading" });
     try {
       const gameUrl = `${location.protocol}//${location.hostname}:${config.gameFramePort}/`;
-      const relayUrl = `${location.protocol}//${location.hostname}:${config.webrtcPort}`;
       // A client plays with whatever the host started with and never uses its
       // own panel, so there is nothing to launch until a host exists.
       const launchSettings =
@@ -167,12 +264,14 @@ export function App({ config }: { config: MugonConfig }) {
         return;
       }
       const build = await readBuildInfo();
+      const transport = new RelayTransport(
+        `${relayUrl}/offer`,
+        hostSettings,
+        new URLSearchParams(location.search).get("name") ?? undefined,
+      );
+      if (role === "server") hostTransportRef.current = transport;
       const parentframe = new Parentframe({
-        transport: new RelayTransport(
-          `${relayUrl}/offer`,
-          hostSettings,
-          new URLSearchParams(location.search).get("name") ?? undefined,
-        ),
+        transport,
         fetchVersionFile: createVersionFileFetcher({
           versionBaseUrl: gameUrl,
           cacheKeyBase: gameUrl,
@@ -180,10 +279,16 @@ export function App({ config }: { config: MugonConfig }) {
         }),
         onPhase: (phase) => setPhases((previous) => [...previous, phase]),
         onProgress: setProgress,
-        onEndGameRequest: () =>
-          returnToStart("The game ended. The platform would return everyone to the lobby."),
-        onNextRoundRequest: (settings, carryOver) =>
-          setNextRound({ settings, carryOver }),
+        onEndGameRequest: () => {
+          if (isSimClient) return;
+          returnToStart(
+            "The game ended. The platform would return everyone to the lobby.",
+          );
+        },
+        onNextRoundRequest: (settings, carryOver) => {
+          if (isSimClient) return;
+          setNextRound({ settings, carryOver });
+        },
       });
       parentframeRef.current = parentframe;
       await parentframe.launch({
@@ -194,6 +299,9 @@ export function App({ config }: { config: MugonConfig }) {
         carryOver,
         totalBytes: build.totalBytes,
       });
+      setActiveRole(role);
+      if (role === "server") applyNetworkProfile();
+      if (!isSimClient) setSimClientsActive(true);
       setStatus({ kind: "running" });
     } catch (error) {
       fail(error);
@@ -214,14 +322,52 @@ export function App({ config }: { config: MugonConfig }) {
     setStatus({ kind: "loading" });
     parentframeRef
       .current!.retryNetwork()
-      .then(() => setStatus({ kind: "running" }))
+      .then(() => {
+        applyNetworkProfile();
+        setStatus({ kind: "running" });
+      })
       .catch(fail);
   };
 
   const started = status.kind !== "idle" && status.kind !== "error";
   const showOverlay =
-    status.kind === "loading" ||
-    (status.kind === "running" && !progress.done);
+    status.kind === "loading" || (status.kind === "running" && !progress.done);
+
+  if (isSimClient) {
+    return (
+      <div
+        style={{
+          position: "relative",
+          height: "100vh",
+          backgroundColor: "#1F1F1F",
+          fontFamily: "sans-serif",
+        }}
+      >
+        <div
+          ref={containerRef}
+          style={{
+            width: "100%",
+            height: "100%",
+            display:
+              status.kind === "idle" || status.kind === "error"
+                ? "none"
+                : "block",
+          }}
+        />
+        {status.kind !== "running" && (
+          <CenteredOverlay column>
+            <div style={{ fontSize: "0.8rem" }}>
+              {status.kind === "error"
+                ? status.message
+                : status.kind === "no-server"
+                  ? "No host"
+                  : `Sim ${simClientIndex}: connecting…`}
+            </div>
+          </CenteredOverlay>
+        )}
+      </div>
+    );
+  }
 
   return (
     // A real flex column rather than `vh`-offset overlays: on a short viewport
@@ -270,7 +416,9 @@ export function App({ config }: { config: MugonConfig }) {
         {status.kind === "idle" && (
           <CenteredOverlay column>
             {notice && (
-              <div style={{ color: "#FFD180", maxWidth: "40rem" }}>{notice}</div>
+              <div style={{ color: "#FFD180", maxWidth: "40rem" }}>
+                {notice}
+              </div>
             )}
             <div style={{ display: "flex", gap: "1rem" }}>
               <button
@@ -289,6 +437,27 @@ export function App({ config }: { config: MugonConfig }) {
                 Start as client
               </button>
             </div>
+            <label
+              style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
+              title="Extra game instances that join the host as clients, shown as tiles under the game"
+            >
+              <span>Simulated clients</span>
+              <input
+                type="number"
+                min={0}
+                max={MAX_SIM_CLIENTS}
+                value={simClientCount}
+                style={{ width: "4rem" }}
+                onChange={(event) =>
+                  setSimClientCount(
+                    Math.min(
+                      MAX_SIM_CLIENTS,
+                      Math.max(0, Math.trunc(event.target.valueAsNumber) || 0),
+                    ),
+                  )
+                }
+              />
+            </label>
             <SettingsPanel
               declarations={config.settings}
               values={settingValues}
@@ -350,6 +519,34 @@ export function App({ config }: { config: MugonConfig }) {
           </CenteredOverlay>
         )}
       </div>
+      {simClientsActive && simClientCount > 0 && (
+        <div
+          style={{
+            flexShrink: 0,
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "center",
+            gap: "0.5rem",
+            paddingTop: "0.5rem",
+          }}
+        >
+          {Array.from({ length: simClientCount }, (_, index) => (
+            <iframe
+              key={index}
+              ref={(tile) => {
+                simTileRefs.current[index] = tile;
+              }}
+              title={`Simulated client ${index + 1}`}
+              src={simClientSrc(index + 1)}
+              style={{
+                width: "15rem",
+                height: "9.5rem",
+                border: "1px solid #555",
+              }}
+            />
+          ))}
+        </div>
+      )}
       <div
         style={{
           flexShrink: 0,
@@ -358,9 +555,18 @@ export function App({ config }: { config: MugonConfig }) {
           fontSize: "0.9rem",
           minHeight: "1.2rem",
           textAlign: "center",
+          display: "flex",
+          flexDirection: "column",
+          gap: "0.5rem",
         }}
       >
-        {started ? status.kind : ""}
+        {activeRole === "server" && status.kind === "running" && (
+          <NetworkBar
+            profile={networkProfile}
+            onChange={changeNetworkProfile}
+          />
+        )}
+        <div>{started ? status.kind : ""}</div>
       </div>
     </div>
   );
@@ -383,7 +589,9 @@ function CenteredOverlay(props: {
         gap: "1rem",
         textAlign: "center",
         color: "#DDD",
-        backgroundColor: props.background ? "rgba(31, 31, 31, 0.92)" : undefined,
+        backgroundColor: props.background
+          ? "rgba(31, 31, 31, 0.92)"
+          : undefined,
       }}
     >
       {props.children}
