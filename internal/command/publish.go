@@ -18,6 +18,10 @@ func ExecutePublishCommand(ctx context.Context, c *cli.Command) error {
 	globalConfig := model.GetGlobalConfig(ctx)
 	projectConfig := model.GetProjectConfig(ctx)
 
+	if overwriteVersion := strings.TrimSpace(c.String("overwrite-version")); overwriteVersion != "" {
+		projectConfig.Version = overwriteVersion
+	}
+
 	var buildCommand *model.CommandConfig
 
 	if command, err := projectConfig.GetCommand("build", model.DefaultCommandScope); err == nil {

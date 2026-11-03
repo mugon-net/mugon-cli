@@ -78,6 +78,7 @@ Builds and publishes the project as a new version on mugon.net.
 
 ```sh
 mugon publish
+mugon publish --overwrite-version 1.2.3   # publish under this version instead of the one in mugon.toml (e.g. in CI/CD)
 ```
 
 1. Runs the `build` command from `mugon.toml` (prefers the `default` scope, falls back to `dev`).

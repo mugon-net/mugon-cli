@@ -78,6 +78,12 @@ func main() {
 				Usage:  "Publishes the project in the current directory as a new version on mugon.net",
 				Before: model.ReadProjectConfig,
 				Action: command.ExecutePublishCommand,
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:  "overwrite-version",
+						Usage: "Publish under this version instead of the one in mugon.toml (useful for CI/CD)",
+					},
+				},
 			},
 			{
 				Name:            "editor",
