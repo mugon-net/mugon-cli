@@ -9,7 +9,7 @@ name = "game"
 path = "src/main.rs"
 
 [dependencies]
-bevy = "0.19"
+bevy = "0.20"
 mugon-sdk-bevy = { version = "0.1", features = ["loading"] }
 
 [target.wasm32-unknown-unknown.dependencies]
