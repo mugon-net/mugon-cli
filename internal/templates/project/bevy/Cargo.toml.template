@@ -10,7 +10,7 @@ path = "src/main.rs"
 
 [dependencies]
 bevy = "0.20"
-mugon-sdk-bevy = { version = "0.1", features = ["loading"] }
+mugon-sdk-bevy = { version = "0.5", features = ["loading"] }
 
 [target.wasm32-unknown-unknown.dependencies]
 getrandom = { version = "0.3", features = ["wasm_js"] }
